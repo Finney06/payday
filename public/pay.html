@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pay invoice · Payday</title>
+  <meta name="description" content="Pay this invoice in dollars (ParyonUSD) or Bitcoin Cash.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main class="wrap">
+    <a class="logo" href="/"><span class="logo-mark">₿</span>Payday</a>
+
+    <div id="loading" class="card center muted" style="margin-top:18px">Loading invoice…</div>
+    <div id="notfound" class="card center hidden" style="margin-top:18px">
+      <h1 style="margin:0 0 6px;font-size:22px">Invoice not found</h1>
+      <p class="muted" style="margin:0">Check the link you were sent, or ask the sender for a new one.</p>
+    </div>
+
+    <section id="invoice" class="hidden" style="margin-top:18px">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+          <span class="muted small"><span id="payee"></span> is requesting</span>
+          <span id="status" class="pill unpaid">⏳ Unpaid</span>
+        </div>
+        <div class="amount" id="amount" style="margin-top:10px"></div>
+        <div class="amount-sub" id="amount-sub"></div>
+        <div class="rows">
+          <div class="row"><span>For</span><span id="desc"></span></div>
+          <div class="row"><span>Billed to</span><span id="client"></span></div>
+          <div class="row"><span>Invoice</span><span id="inv-id"></span></div>
+          <div class="row"><span>Date</span><span id="date"></span></div>
+        </div>
+      </div>
+
+      <!-- Unpaid: choose how to pay -->
+      <div id="pay-box" class="card stack" style="margin-top:14px">
+        <div class="seg" role="group" aria-label="Pay with">
+          <button type="button" data-method="PUSD" aria-pressed="true">Dollars (ParyonUSD)</button>
+          <button type="button" data-method="BCH" aria-pressed="false">Bitcoin Cash</button>
+        </div>
+        <p class="center" style="margin:6px 0 0">You'll send <b id="send-amount"></b></p>
+        <button id="pay-btn" class="btn" type="button">Connect wallet &amp; pay</button>
+        <p id="pay-msg" class="center small muted" style="margin:0">Works with Paytaca and other WizardConnect wallets.</p>
+      </div>
+
+      <!-- Paid: receipt -->
+      <div id="paid-box" class="card center stack hidden" style="margin-top:14px">
+        <div class="check">✓</div>
+        <h2 style="margin:0;font-size:22px">Paid</h2>
+        <p class="muted" style="margin:0" id="paid-line"></p>
+        <a id="proof" class="btn secondary" target="_blank" rel="noopener">See proof on the blockchain</a>
+      </div>
+    </section>
+
+    <footer>Payments go straight to the sender's wallet. Payday never holds your money.</footer>
+  </main>
+  <script type="module" src="/pay.js"></script>
+</body>
+</html>
