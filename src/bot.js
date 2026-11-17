@@ -27,10 +27,23 @@ export function reminderMessage(inv) {
 }
 
 function shareKeyboard(inv, text) {
-  return new InlineKeyboard()
+  const kb = new InlineKeyboard()
     .url('📲 Send on WhatsApp', `https://wa.me/?text=${encodeURIComponent(text)}`).row()
-    .url('✈️ Share on Telegram', `https://t.me/share/url?url=${encodeURIComponent(payLink(inv))}&text=${encodeURIComponent(text.split('\n')[0])}`).row()
-    .url('👀 Open pay page', payLink(inv));
+    .url('✈️ Share on Telegram', `https://t.me/share/url?url=${encodeURIComponent(payLink(inv))}&text=${encodeURIComponent(text.split('\n')[0])}`);
+  // Telegram only accepts public URLs on buttons (not localhost).
+  if (/^https:\/\//.test(config.baseUrl)) kb.row().url('👀 Open pay page', payLink(inv));
+  return kb;
+}
+
+// Send with buttons; if Telegram rejects the buttons for any reason, still send the text.
+async function replyWithButtons(ctx, html, keyboard) {
+  const opts = { parse_mode: 'HTML', link_preview_options: { is_disabled: true } };
+  try {
+    return await ctx.reply(html, { ...opts, reply_markup: keyboard });
+  } catch (err) {
+    console.error('reply with buttons failed, sending plain:', err.message);
+    return ctx.reply(html, opts);
+  }
 }
 
 function invoiceCard(inv) {
@@ -85,7 +98,7 @@ export function createBot() {
       amountCents, inputAmount: draft.amount, inputCurrency: draft.currency,
     });
     state.delete(ctx.chat.id);
-    await ctx.reply(invoiceCard(inv), { parse_mode: 'HTML', link_preview_options: { is_disabled: true }, reply_markup: shareKeyboard(inv, clientMessage(inv)) });
+    await replyWithButtons(ctx, invoiceCard(inv), shareKeyboard(inv, clientMessage(inv)));
   }
 
   async function startGuided(ctx) {
@@ -138,8 +151,8 @@ export function createBot() {
     if (!inv || inv.chat_id !== ctx.chat.id) return;
     if (inv.status === 'paid') return ctx.reply(`Good news: ${inv.client} already paid ✅`);
     const text = reminderMessage(inv);
-    await ctx.reply(`Here's a polite reminder for <b>${esc(inv.client)}</b>. Tap to send it 👇\n\n<i>${esc(text)}</i>`,
-      { parse_mode: 'HTML', link_preview_options: { is_disabled: true }, reply_markup: shareKeyboard(inv, text) });
+    await replyWithButtons(ctx, `Here's a polite reminder for <b>${esc(inv.client)}</b>. Tap to send it 👇\n\n<i>${esc(text)}</i>`,
+      shareKeyboard(inv, text));
   });
 
   bot.on('message:text', async (ctx) => {
