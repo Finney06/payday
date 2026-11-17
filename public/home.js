@@ -97,8 +97,8 @@
     try { cfg = await (await fetch('/api/config')).json(); } catch { return; }
     if (cfg.slidesUrl) {
       const a = $('slides-link');
-      a.href = cfg.slidesUrl; a.textContent = 'Slides'; a.target = '_blank'; a.rel = 'noopener';
-      a.removeAttribute('aria-disabled');
+      // The deck lives at /slides/ on this site; a slidesUrl from the server overrides it.
+      a.href = cfg.slidesUrl;
     }
     if (cfg.repoUrl) $('repo-link').href = cfg.repoUrl;
     if (cfg.emberAddress) {
