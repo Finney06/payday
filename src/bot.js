@@ -1,4 +1,5 @@
-import { Bot, InlineKeyboard, Keyboard } from 'grammy';
+import { Bot, InlineKeyboard, Keyboard, InputFile } from 'grammy';
+import { renderInvoicePng } from './invoice-image.js';
 import { config } from './config.js';
 import { freelancers, invoices } from './db.js';
 import { normalizeAddress, shortAddress } from './address.js';
@@ -41,6 +42,17 @@ function shareKeyboard(inv, text, { withDelete = false } = {}) {
   if (/^https:\/\//.test(config.baseUrl)) kb.row().url('👀 Open pay page', payLink(inv));
   if (withDelete) kb.row().text('🗑 Delete invoice', `del:${inv.id}`);
   return kb;
+}
+
+// Send the invoice as an image with the details as caption; fall back to plain text if the image fails.
+async function replyWithInvoice(ctx, inv, html, keyboard) {
+  try {
+    const png = await renderInvoicePng(inv);
+    return await ctx.replyWithPhoto(new InputFile(png, `invoice-${inv.id}.png`), { caption: html, parse_mode: 'HTML', reply_markup: keyboard });
+  } catch (err) {
+    console.error('invoice image failed, sending text:', err.message);
+    return replyWithButtons(ctx, html, keyboard);
+  }
 }
 
 // Send with buttons; if Telegram rejects the buttons for any reason, still send the text.
@@ -109,7 +121,7 @@ export function createBot() {
       amountCents, inputAmount: draft.amount, inputCurrency: draft.currency,
     });
     state.delete(ctx.chat.id);
-    await replyWithButtons(ctx, invoiceCard(inv), shareKeyboard(inv, clientMessage(inv), { withDelete: true }));
+    await replyWithInvoice(ctx, inv, invoiceCard(inv), shareKeyboard(inv, clientMessage(inv), { withDelete: true }));
   }
 
   async function startGuided(ctx) {
@@ -311,8 +323,13 @@ export async function setBotProfile(bot) {
 export async function notifyPaid(bot, inv) {
   if (!bot || !inv.chat_id) return;
   const proof = `https://explorer.bch.ninja/tx/${inv.txid}`;
-  await bot.api.sendMessage(inv.chat_id,
-    `🎉 <b>${esc(inv.client)} paid ${fmt.usd(inv.amount_cents)}</b> in ${inv.paid_with === 'PUSD' ? 'ParyonUSD' : 'BCH'}\n` +
-    `For: ${esc(inv.description)}\n\nThe money is already in your wallet. <a href="${proof}">See proof on the blockchain</a>`,
-    HTML).catch((e) => console.error('notify failed', e.message));
+  const text = `🎉 <b>${esc(inv.client)} paid ${fmt.usd(inv.amount_cents)}</b> in ${inv.paid_with === 'PUSD' ? 'ParyonUSD' : 'BCH'}\n` +
+    `For: ${esc(inv.description)}\n\nThe money is already in your wallet. <a href="${proof}">See proof on the blockchain</a>`;
+  try {
+    const png = await renderInvoicePng(inv);
+    await bot.api.sendPhoto(inv.chat_id, new InputFile(png, `receipt-${inv.id}.png`), { caption: text, parse_mode: 'HTML' });
+  } catch (err) {
+    console.error('receipt image failed, sending text:', err.message);
+    await bot.api.sendMessage(inv.chat_id, text, HTML).catch((e) => console.error('notify failed', e.message));
+  }
 }

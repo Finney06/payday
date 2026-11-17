@@ -7,6 +7,8 @@ import { normalizeAddress, scripthashOf } from './address.js';
 import { getRates, toUsdCents } from './rates.js';
 import { chain } from './chain.js';
 import { quoteBch, submitPayment } from './payments.js';
+import { renderInvoicePng } from './invoice-image.js';
+import { readFileSync } from 'node:fs';
 
 const publicDir = join(dirname(fileURLToPath(import.meta.url)), '..', 'public');
 
@@ -125,7 +127,37 @@ export function createWeb({ getBotUsername, onPaid }) {
     }
   });
 
-  app.get('/pay/:id', (_req, res) => res.sendFile(join(publicDir, 'pay.html')));
+  // Invoice / receipt image (also used as the WhatsApp/Telegram link preview of a pay link).
+  const imageCache = new Map(); // `${id}:${status}` -> { png, at }
+  app.get('/i/:id.png', async (req, res) => {
+    const inv = await invoices.get(req.params.id);
+    if (!inv) return res.status(404).end();
+    const key = `${inv.id}:${inv.status}`;
+    let hit = imageCache.get(key);
+    if (!hit || Date.now() - hit.at > 10 * 60 * 1000) {
+      try { hit = { png: await renderInvoicePng(inv), at: Date.now() }; } catch (e) { console.error('image', e.message); return res.status(500).end(); }
+      if (imageCache.size > 500) imageCache.clear();
+      imageCache.set(key, hit);
+    }
+    res.set('Cache-Control', 'public, max-age=300').type('png').send(hit.png);
+  });
+
+  // Pay page, with this invoice's own preview image and title for link previews.
+  const payHtml = readFileSync(join(publicDir, 'pay.html'), 'utf8');
+  const metaEsc = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+  app.get('/pay/:id', async (req, res) => {
+    const inv = /^[a-z0-9]{4,16}$/.test(req.params.id) ? await invoices.get(req.params.id) : null;
+    if (!inv) return res.type('html').send(payHtml);
+    const amount = `$${(inv.amount_cents / 100).toFixed(2)}`;
+    const title = `${inv.payee_name} sent you an invoice for ${amount}`;
+    const desc = `${inv.description}. Pay in seconds with dollars (ParyonUSD) or Bitcoin Cash.`;
+    const html = payHtml
+      .replace(/<meta property="og:image"[^>]*>/, `<meta property="og:image" content="${config.baseUrl}/i/${inv.id}.png">`)
+      .replace(/<meta property="og:title"[^>]*>/, `<meta property="og:title" content="${metaEsc(title)}">`)
+      .replace(/<meta property="og:description"[^>]*>/, `<meta property="og:description" content="${metaEsc(desc)}">`)
+      .replace('</head>', '  <meta name="twitter:card" content="summary_large_image">\n</head>');
+    res.type('html').send(html);
+  });
   app.use(express.static(publicDir, { extensions: ['html'] }));
 
   return app;
