@@ -4,69 +4,118 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Pay invoice · Payday</title>
-  <meta name="description" content="Pay this invoice in dollars (ParyonUSD) or Bitcoin Cash.">
+  <meta name="description" content="Pay this invoice in dollars (ParyonUSD) or Bitcoin Cash. The money goes straight to the sender's wallet.">
+  <meta property="og:title" content="You have an invoice to pay · Payday">
+  <meta property="og:description" content="Pay in seconds with dollars (ParyonUSD) or Bitcoin Cash. Straight to the sender's wallet.">
+  <meta property="og:image" content="/icon.png">
+  <meta name="theme-color" content="#f1f4f1" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#09110d" media="(prefers-color-scheme: dark)">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Instrument+Sans:wght@400..700&display=swap">
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/icon.png">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <main class="wrap">
-    <a class="logo" href="/"><span class="logo-mark">₿</span>Payday</a>
+  <header class="topbar">
+    <a class="logo" href="/"><img src="/icon.svg" alt="" width="30" height="30">Payday</a>
+    <span class="secure">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="2"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>
+      Paid straight to the sender
+    </span>
+  </header>
 
-    <div id="loading" class="card center muted" style="margin-top:18px">Loading invoice…</div>
-    <div id="notfound" class="card center hidden" style="margin-top:18px">
-      <h1 style="margin:0 0 6px;font-size:22px">Invoice not found</h1>
-      <p class="muted" style="margin:0">Check the link you were sent, or ask the sender for a new one.</p>
+  <main class="wrap">
+    <!-- Loading -->
+    <div id="loading" class="ticket skeleton" role="status">
+      <span class="sr-only">Loading invoice…</span>
+      <div class="ticket-body" aria-hidden="true">
+        <span class="bone" style="width:38%"></span>
+        <span class="bone big"></span>
+        <span class="bone" style="width:54%"></span>
+        <span class="bone" style="margin-top:10px"></span>
+        <span class="bone"></span>
+        <span class="bone" style="width:76%"></span>
+      </div>
     </div>
 
-    <section id="invoice" class="hidden" style="margin-top:18px">
-      <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
-          <span class="muted small"><span id="payee"></span> is requesting</span>
-          <span id="status" class="pill unpaid">⏳ Unpaid</span>
-        </div>
-        <div class="amount" id="amount" style="margin-top:10px"></div>
-        <div class="amount-sub" id="amount-sub"></div>
-        <div class="rows">
-          <div class="row"><span>For</span><span id="desc"></span></div>
-          <div class="row"><span>Billed to</span><span id="client"></span></div>
-          <div class="row"><span>Invoice</span><span id="inv-id"></span></div>
-          <div class="row"><span>Date</span><span id="date"></span></div>
-        </div>
-      </div>
+    <!-- Not found -->
+    <div id="notfound" class="ticket notfound center hidden">
+      <div class="glyph" aria-hidden="true">?</div>
+      <h1>Invoice not found</h1>
+      <p class="muted">This link may be mistyped, or the sender deleted the invoice. Ask them to send it again.</p>
+      <a class="btn secondary" href="/" style="margin-top:8px">Go to Payday</a>
+    </div>
 
-      <!-- Unpaid: choose how to pay -->
-      <div id="pay-box" class="card stack" style="margin-top:14px">
-        <div class="seg" id="seg" role="group" aria-label="Pay with">
-          <button type="button" data-method="PUSD" aria-pressed="true">Dollars (ParyonUSD)</button>
-          <button type="button" data-method="BCH" aria-pressed="false">Bitcoin Cash</button>
-        </div>
-        <p class="center" style="margin:6px 0 0">You'll send <b id="send-amount"></b></p>
-        <button id="pay-btn" class="btn" type="button">Connect wallet &amp; pay</button>
-        <div id="wallet-panel" class="stack hidden">
-          <div id="qr-wrap" class="center">
-            <div id="qr" class="qr" aria-label="Scan this code with your wallet"></div>
-            <a id="open-wallet" class="btn hidden" style="margin-top:12px">Open wallet app</a>
+    <section id="invoice" class="hidden">
+      <article class="ticket">
+        <div class="ticket-body">
+          <div class="ticket-head">
+            <div class="from">
+              <span class="eyebrow">Invoice from</span>
+              <strong id="payee"></strong>
+            </div>
+            <span id="status" class="pill unpaid">Unpaid</span>
           </div>
-          <div class="spinner-row"><span class="spinner" aria-hidden="true"></span></div>
+          <div class="amount" id="amount"></div>
+          <div class="amount-sub" id="amount-sub"></div>
+          <dl class="rows">
+            <div class="row"><dt>For</dt><dd id="desc"></dd></div>
+            <div class="row"><dt>Billed to</dt><dd id="client"></dd></div>
+            <div class="row"><dt>Invoice</dt><dd id="inv-id" class="mono"></dd></div>
+            <div class="row"><dt>Date</dt><dd id="date"></dd></div>
+          </dl>
         </div>
-        <p id="pay-msg" class="center small muted" style="margin:0" aria-live="polite">Works with Paytaca and other WizardConnect wallets.</p>
-        <button id="alt-btn" class="btn hidden" type="button"></button>
-        <button id="cancel-btn" class="btn secondary hidden" type="button">Cancel</button>
-      </div>
 
-      <!-- Paid: receipt -->
-      <div id="paid-box" class="card center stack hidden" style="margin-top:14px">
-        <div class="check">✓</div>
-        <h2 style="margin:0;font-size:22px">Paid</h2>
-        <p class="muted" style="margin:0" id="paid-line"></p>
-        <a id="proof" class="btn secondary" target="_blank" rel="noopener">See proof on the blockchain</a>
-      </div>
+        <div class="perf" aria-hidden="true"></div>
+
+        <!-- Unpaid: choose how to pay -->
+        <div id="pay-box" class="stub">
+          <span class="field-label" id="seg-label">Pay with</span>
+          <div class="seg" id="seg" role="group" aria-labelledby="seg-label">
+            <button type="button" data-method="PUSD" aria-pressed="true">
+              <span class="seg-title">Dollars</span>
+              <span class="seg-sub">ParyonUSD stablecoin</span>
+            </button>
+            <button type="button" data-method="BCH" aria-pressed="false">
+              <span class="seg-title">Bitcoin Cash</span>
+              <span class="seg-sub">BCH at today's rate</span>
+            </button>
+          </div>
+          <p class="send-line"><span>You'll send</span><b id="send-amount"></b></p>
+          <button id="pay-btn" class="btn block" type="button">Connect wallet &amp; pay</button>
+
+          <div id="wallet-panel" class="wallet hidden">
+            <ol class="progress" aria-hidden="true"><li>1. Connect</li><li>2. Approve</li><li>3. Paid</li></ol>
+            <div id="qr-wrap">
+              <div id="qr" class="qr" role="img" aria-label="QR code: scan it with your wallet to connect"></div>
+              <p class="qr-help">In Paytaca, open <b>WizardConnect</b>, then scan this code.</p>
+              <a id="open-wallet" class="btn hidden">Open wallet app</a>
+            </div>
+            <div class="spinner-row"><span class="spinner" aria-hidden="true"></span></div>
+          </div>
+
+          <p id="pay-msg" class="center small muted" aria-live="polite">Works with Paytaca and other WizardConnect wallets.</p>
+          <button id="alt-btn" class="btn block hidden" type="button"></button>
+          <button id="cancel-btn" class="btn block quiet hidden" type="button">Cancel</button>
+        </div>
+
+        <!-- Paid: receipt -->
+        <div id="paid-box" class="stub receipt hidden">
+          <div class="stamp" aria-hidden="true">Paid</div>
+          <h2>Payment received</h2>
+          <p class="muted" id="paid-line"></p>
+          <a id="proof" class="btn block secondary" target="_blank" rel="noopener">See proof on the blockchain</a>
+          <button class="btn block quiet no-print" type="button" onclick="window.print()">Save or print receipt</button>
+        </div>
+      </article>
     </section>
 
-    <footer>Payments go straight to the sender's wallet. Payday never holds your money.</footer>
+    <footer class="pay-foot">
+      <p>Payments go straight to the sender's wallet. Payday never holds your money.</p>
+      <p><a href="/">Freelancer? Send your own invoice with Payday</a></p>
+    </footer>
   </main>
   <script type="module" src="/pay.bundle.js"></script>
 </body>
