@@ -21,7 +21,7 @@ export const config = {
   // Hackathon banner + "Try it" demo invoice
   repoUrl: process.env.REPO_URL || 'https://github.com/Finney06/payday',
   slidesUrl: opt(process.env.SLIDES_URL),
-  emberAddress: opt(process.env.EMBER_ADDRESS),
+  emberAddress: opt(process.env.EMBER_ADDRESS) || 'bitcoincash:zzhuv665eghtsamz4n4hhjjwkwutruu5s5zpqke8x0',
   demoName: process.env.DEMO_NAME || 'Finney Osajere',
   demoAddress: process.env.DEMO_ADDRESS || '',
   demoChatId: process.env.DEMO_CHAT_ID ? Number(process.env.DEMO_CHAT_ID) : null,
