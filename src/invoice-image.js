@@ -11,7 +11,7 @@ const FONTS = ['Geist-Regular', 'Geist-Medium', 'Geist-SemiBold', 'Geist-Bold', 
   .map((f) => join(fontDir, `${f}.ttf`));
 
 const C = {
-  page: '#f7f6f3', card: '#ffffff', ink: '#15171c', muted: '#5e6470', faint: '#8b909b', line: '#e8e6e1',
+  page: '#f1ede5', card: '#f9f6f0', ink: '#24212a', muted: '#5e6470', faint: '#8b909b', line: '#e8e6e1',
   accent: '#5b37e6', accentSoft: '#f1edff', warn: '#85560a', warnSoft: '#fcf0d6', paid: '#0f7b4a', paidSoft: '#e4f5ec',
 };
 const W = 1080, H = 1350, PAD = 72;

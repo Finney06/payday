@@ -1,32 +1,32 @@
-/* Payday UI: rounded colour tiles (purple, yellow, orange, ink) on a soft grey page.
+/* Payday UI: rounded colour tiles (purple, yellow, orange, ink) on warm paper. No pure white or pure black: they glare next to the bright tiles.
    1. Tokens   2. Base   3. Buttons, pills, fields   4. Invoice ticket
    5. Pay page   6. Home page   7. Motion and print */
 
 /* ---------- 1. Tokens ---------- */
 :root {
-  --bg: #f4f4f6;
-  --surface: #ffffff;
-  --raise: #f8f8fa;
-  --ink: #101014;
-  --muted: #62626d;
-  --faint: #6f6f7b;
-  --line: #e6e6ec;
-  --line-strong: #d2d2da;
+  --bg: #f1ede5;
+  --surface: #f9f6f0;
+  --raise: #efe9df;
+  --ink: #24212a;
+  --muted: #5e5862;
+  --faint: #6a646d;
+  --line: #e2dbcf;
+  --line-strong: #d0c8ba;
 
   --purple: #5b37e6;
   --purple-hover: #4c2bd1;
-  --purple-soft: #efebff;
+  --purple-soft: #ebe4fb;
   --purple-text: #5b37e6;
   --yellow: #ffd75e;
-  --yellow-soft: #fff6d6;
+  --yellow-soft: #fbefc9;
   --orange: #ff8a3d;
-  --orange-soft: #fff0e4;
-  --night: #101014;
+  --orange-soft: #fbe3d1;
+  --night: #24212a;
   --paid: #087443;
-  --green-soft: #dcfae6;
+  --green-soft: #dcf3e2;
   --green-text: #067647;
   --danger: #c4320a;
-  --danger-soft: #fff1ec;
+  --danger-soft: #fbe9e2;
 
   --font: "Outfit", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --mono: "Geist Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
@@ -71,7 +71,7 @@ button, input, select { font: inherit; color: inherit; }
 .btn:active { transform: scale(.98); }
 .btn:disabled { opacity: .55; cursor: not-allowed; transform: none; }
 .btn.block { width: 100%; }
-.btn.white { background: #fff; color: #101014; }
+.btn.white { background: #faf6ee; color: #24212a; }
 .btn.white:hover { background: #ece7ff; }
 .btn.line { background: transparent; color: #fff; border-color: rgba(255, 255, 255, .5); }
 .btn.line:hover { background: rgba(255, 255, 255, .1); border-color: #fff; }
@@ -83,8 +83,8 @@ button, input, select { font: inherit; color: inherit; }
 
 .pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; font-size: 13.5px; font-weight: 600; white-space: nowrap; }
 .pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
-.pill.unpaid { background: var(--yellow); color: #101014; }
-.pill.paid { background: #fff; color: #067647; }
+.pill.unpaid { background: var(--yellow); color: #24212a; }
+.pill.paid { background: #faf6ee; color: #067647; }
 .pill.ok { background: var(--green-soft); color: var(--green-text); }
 .pill.draft { background: rgba(255, 255, 255, .18); color: #fff; }
 .pill.draft::before { display: none; }
@@ -141,7 +141,7 @@ button, input, select { font: inherit; color: inherit; }
 
 .notfound { padding: 40px 24px; display: grid; gap: 10px; justify-items: center; }
 .notfound h1 { font-size: 26px; }
-.notfound .glyph { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: var(--yellow); color: #101014; font-size: 26px; font-weight: 600; margin-bottom: 6px; }
+.notfound .glyph { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: var(--yellow); color: #24212a; font-size: 26px; font-weight: 600; margin-bottom: 6px; }
 
 .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .seg button {
@@ -195,11 +195,11 @@ button, input, select { font: inherit; color: inherit; }
 .tile { border-radius: var(--radius); padding: 24px 22px; position: relative; overflow: hidden; min-width: 0; }
 .t-purple { background: var(--purple); color: #fff; --notch: var(--purple); }
 .t-night { background: var(--night); color: #fff; }
-.t-yellow { background: var(--yellow); color: #101014; }
-.t-orange { background: var(--orange); color: #101014; }
+.t-yellow { background: var(--yellow); color: #24212a; }
+.t-orange { background: var(--orange); color: #24212a; }
 .t-white { background: var(--surface); color: var(--ink); }
 .t-purple :focus-visible, .t-night :focus-visible { outline-color: #fff; }
-.t-yellow :focus-visible, .t-orange :focus-visible { outline-color: #101014; }
+.t-yellow :focus-visible, .t-orange :focus-visible { outline-color: #24212a; }
 
 /* Hackathon banner */
 .blaze { font-size: 13.5px; color: var(--muted); }
@@ -231,7 +231,7 @@ button, input, select { font: inherit; color: inherit; }
 .hero-copy { display: grid; gap: 26px; justify-items: start; }
 .hero h1 { font-size: clamp(33px, 3vw + 15px, 54px); letter-spacing: -.035em; line-height: 1.08; }
 .hero h1 > span { display: block; }
-.hl { background: var(--yellow); color: #101014; padding: 0 .14em; border-radius: .18em; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+.hl { background: var(--yellow); color: #24212a; padding: 0 .14em; border-radius: .18em; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
 .hero-sub { font-size: 18.5px; color: rgba(255, 255, 255, .92); max-width: 27rem; margin-top: -8px; }
 .cta { display: grid; gap: 10px; width: 100%; }
 .hero-note { font-size: 14.5px; color: rgba(255, 255, 255, .74); }
@@ -279,7 +279,7 @@ button, input, select { font: inherit; color: inherit; }
 .big { font-size: clamp(44px, 2.6vw + 22px, 60px); font-weight: 600; letter-spacing: -.045em; line-height: .95; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .stat small { display: block; font-size: 14.5px; margin-top: 10px; opacity: .78; }
 .t-white.stat small, .t-white .stat-top { color: var(--muted); opacity: 1; }
-.tick { width: 42px; height: 42px; border-radius: 50%; background: #101014; color: var(--orange); display: grid; place-items: center; flex: none; }
+.tick { width: 42px; height: 42px; border-radius: 50%; background: #24212a; color: var(--orange); display: grid; place-items: center; flex: none; }
 
 /* Sections */
 .sec { padding-top: 76px; }
@@ -317,14 +317,14 @@ button, input, select { font: inherit; color: inherit; }
 .t-white .tag { background: var(--raise); color: var(--muted); }
 .flow { display: flex; align-items: center; gap: 10px; }
 .node { padding: 11px 16px; border-radius: 999px; background: rgba(255, 255, 255, .09); font-weight: 500; white-space: nowrap; }
-.node.yours { background: var(--yellow); color: #101014; }
+.node.yours { background: var(--yellow); color: #24212a; }
 .wire { flex: 1; min-width: 24px; height: 2px; position: relative; background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .45) 0 6px, transparent 6px 12px); }
 .wire::after { content: ""; position: absolute; top: -4px; left: 0; width: 10px; height: 10px; border-radius: 50%; background: var(--yellow); animation: travel 2.6s ease-in-out infinite; }
 @keyframes travel { 0% { left: 0; opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { left: calc(100% - 10px); opacity: 0; } }
 .flow-note { font-size: 14.5px; opacity: .6; }
 .txbox { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 16px; background: rgba(16, 16, 20, .08); font-family: var(--mono); font-size: 13.5px; }
 .txbox span:last-child { font-family: var(--font); font-weight: 600; font-size: 13.5px; display: inline-flex; align-items: center; gap: 6px; }
-.qr-art { width: 76px; height: 76px; border-radius: 14px; background: #fff; padding: 7px; border: 1px solid var(--line); }
+.qr-art { width: 76px; height: 76px; border-radius: 14px; background: #faf6ee; padding: 7px; border: 1px solid var(--line); }
 .qr-art svg { display: block; width: 100%; height: 100%; }
 
 /* Make an invoice */
@@ -350,12 +350,12 @@ button, input, select { font: inherit; color: inherit; }
 .rate-in:focus-within { background: rgba(255, 255, 255, .85); }
 .rate-amount { display: flex; align-items: baseline; gap: 4px; min-width: 0; }
 .rate-amount span { font-size: 36px; font-weight: 600; color: rgba(16, 16, 20, .62); letter-spacing: -.03em; }
-.rate-amount input { appearance: textfield; -moz-appearance: textfield; width: 100%; min-width: 0; border: 0; background: transparent; padding: 0; color: #101014; font-size: 36px; font-weight: 600; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.rate-amount input { appearance: textfield; -moz-appearance: textfield; width: 100%; min-width: 0; border: 0; background: transparent; padding: 0; color: #24212a; font-size: 36px; font-weight: 600; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
 .rate-amount input:focus { outline: none; }
 .rate-amount input::-webkit-outer-spin-button, .rate-amount input::-webkit-inner-spin-button { appearance: none; margin: 0; }
 .chips { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; background: rgba(16, 16, 20, .08); }
 .chips button { appearance: none; cursor: pointer; border: 0; background: transparent; color: #3d3a30; font-size: 14px; font-weight: 600; min-height: 44px; padding: 0 12px; border-radius: 999px; }
-.chips button[aria-pressed="true"] { background: #101014; color: #fff; }
+.chips button[aria-pressed="true"] { background: #24212a; color: #fff; }
 .rate-out { margin-top: 12px; }
 .rate-out li { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 15px 4px; border-bottom: 1px solid rgba(16, 16, 20, .14); }
 .rate-out li:last-child { border-bottom: 0; }
