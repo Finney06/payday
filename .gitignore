@@ -1,3 +1,5 @@
 node_modules/
 data/
 .env
+public/pay.bundle.js
+public/pay.bundle.js.map

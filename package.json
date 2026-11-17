@@ -4,17 +4,23 @@
   "description": "Send an invoice from a chat. Get paid in dollars on Bitcoin Cash.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node --no-warnings src/index.js",
-    "dev": "node --no-warnings --watch src/index.js"
+    "test": "node --no-warnings --test test/payment.test.js",
+    "start": "npm run build && node --no-warnings src/index.js",
+    "dev": "node --no-warnings --watch src/index.js",
+    "build": "esbuild client/pay.js --bundle --format=esm --platform=browser --target=es2022 --minify --sourcemap --outfile=public/pay.bundle.js"
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
   "type": "module",
   "dependencies": {
-    "@bitauth/libauth": "^3.0.0",
+    "@bitauth/libauth": "^3.1.0-next.8",
+    "@electrum-cash/network": "^4.4.8",
+    "@wizardconnect/core": "^0.2.10",
+    "@wizardconnect/dapp": "^0.2.7",
+    "esbuild": "^0.28.2",
     "express": "^5.3.0",
-    "grammy": "^1.46.0"
+    "grammy": "^1.46.0",
+    "qrcode": "^1.5.4"
   }
 }

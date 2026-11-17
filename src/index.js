@@ -1,11 +1,11 @@
 import { config } from './config.js';
-import { createBot, setBotProfile } from './bot.js';
+import { createBot, setBotProfile, notifyPaid } from './bot.js';
 import { createWeb } from './web.js';
 
 const bot = createBot();
 let botUsername = config.botUsername;
 
-const app = createWeb({ getBotUsername: () => botUsername, bot });
+const app = createWeb({ getBotUsername: () => botUsername, onPaid: (inv) => notifyPaid(bot, inv) });
 app.listen(config.port, () => console.log(`Payday web running on ${config.baseUrl} (port ${config.port}, ${config.network})`));
 
 if (bot) {

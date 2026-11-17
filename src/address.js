@@ -1,4 +1,4 @@
-import { cashAddressToLockingBytecode, lockingBytecodeToCashAddress, binToHex } from '@bitauth/libauth';
+import { cashAddressToLockingBytecode, lockingBytecodeToCashAddress, binToHex, hexToBin, sha256 } from '@bitauth/libauth';
 import { config } from './config.js';
 
 const PREFIX = config.network === 'mainnet' ? 'bitcoincash' : 'bchtest';
@@ -20,6 +20,13 @@ export function normalizeAddress(input) {
     tokenAddress: token.address,
     lockingBytecodeHex: binToHex(decoded.bytecode),
   };
+}
+
+// Electrum "script hash": sha256 of the locking bytecode, byte-reversed, hex.
+export function scripthashOf(address) {
+  const a = normalizeAddress(address);
+  if (!a) return null;
+  return binToHex(sha256.hash(hexToBin(a.lockingBytecodeHex)).reverse());
 }
 
 export function shortAddress(addr) {

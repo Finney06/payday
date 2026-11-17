@@ -7,6 +7,8 @@
   <meta name="description" content="Pay this invoice in dollars (ParyonUSD) or Bitcoin Cash.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/icon.png">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
@@ -37,13 +39,21 @@
 
       <!-- Unpaid: choose how to pay -->
       <div id="pay-box" class="card stack" style="margin-top:14px">
-        <div class="seg" role="group" aria-label="Pay with">
+        <div class="seg" id="seg" role="group" aria-label="Pay with">
           <button type="button" data-method="PUSD" aria-pressed="true">Dollars (ParyonUSD)</button>
           <button type="button" data-method="BCH" aria-pressed="false">Bitcoin Cash</button>
         </div>
         <p class="center" style="margin:6px 0 0">You'll send <b id="send-amount"></b></p>
         <button id="pay-btn" class="btn" type="button">Connect wallet &amp; pay</button>
-        <p id="pay-msg" class="center small muted" style="margin:0">Works with Paytaca and other WizardConnect wallets.</p>
+        <div id="wallet-panel" class="stack hidden">
+          <div id="qr-wrap" class="center">
+            <div id="qr" class="qr" aria-label="Scan this code with your wallet"></div>
+            <a id="open-wallet" class="btn hidden" style="margin-top:12px">Open wallet app</a>
+          </div>
+          <div class="spinner-row"><span class="spinner" aria-hidden="true"></span></div>
+        </div>
+        <p id="pay-msg" class="center small muted" style="margin:0" aria-live="polite">Works with Paytaca and other WizardConnect wallets.</p>
+        <button id="cancel-btn" class="btn secondary hidden" type="button">Cancel</button>
       </div>
 
       <!-- Paid: receipt -->
@@ -57,6 +67,6 @@
 
     <footer>Payments go straight to the sender's wallet. Payday never holds your money.</footer>
   </main>
-  <script type="module" src="/pay.js"></script>
+  <script type="module" src="/pay.bundle.js"></script>
 </body>
 </html>
