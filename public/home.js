@@ -29,6 +29,67 @@
 
   // The mock chat and step 2 show the real host name.
   document.querySelectorAll('.host').forEach((el) => { el.textContent = location.host; });
+  // ---------- phone: the Telegram flow, played on a loop ----------
+  const chat = $('tg-chat');
+  if (chat && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const field = $('tg-field');
+    const sub = $('tg-sub');
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+    const add = (cls, html) => {
+      const el = document.createElement('div');
+      el.className = cls;
+      el.innerHTML = html;
+      el.querySelectorAll('.host').forEach((h) => { h.textContent = location.host; });
+      chat.append(el);
+      return el;
+    };
+    const LINE = 'invoice Ayo $50 logo design';
+    const INVOICE = '🧾 <b>Invoice k7m2xq9d</b><br>To: Ayo · $50.00 · logo design<br>Send this to your client 👇<br>' +
+      '<span class="tg-link"><span class="host"></span>/pay/k7m2xq9d</span><span class="tg-time">12:04</span>';
+    const PAID = '🎉 <b>Ayo paid $50.00</b> in ParyonUSD.<br>The money is already in your wallet.<span class="tg-time">12:06</span>';
+
+    async function botTyping(ms) {
+      sub.textContent = 'typing…';
+      sub.classList.add('typing');
+      const dots = add('tg-dots', '<i></i><i></i><i></i>');
+      await sleep(ms);
+      dots.remove();
+      sub.textContent = 'bot';
+      sub.classList.remove('typing');
+    }
+
+    async function play() {
+      for (;;) {
+        chat.replaceChildren();
+        chat.classList.remove('fade');
+        await sleep(700);
+        // The freelancer types one line and sends it.
+        field.classList.add('filled');
+        for (let i = 1; i <= LINE.length; i++) { field.textContent = LINE.slice(0, i); await sleep(55); }
+        await sleep(450);
+        field.classList.remove('filled');
+        field.textContent = 'Message';
+        add('tg-msg out', `${LINE}<span class="tg-time">12:04 ✓✓</span>`);
+        await sleep(500);
+        // The bot replies with the invoice and share buttons.
+        await botTyping(1100);
+        add('tg-msg in', INVOICE);
+        const kb = add('tg-kb', '<span>📲 Send on WhatsApp</span><span>✈️ Share on Telegram</span>');
+        await sleep(1700);
+        kb.firstElementChild.classList.add('pressed');
+        await sleep(450);
+        kb.firstElementChild.classList.remove('pressed');
+        // A little later, the client pays.
+        await sleep(1600);
+        await botTyping(900);
+        add('tg-msg in', PAID);
+        await sleep(4200);
+        chat.classList.add('fade');
+        await sleep(400);
+      }
+    }
+    play();
+  }
 
   // ---------- hackathon banner + demo amount (from /api/config) ----------
   async function loadConfig() {
@@ -151,8 +212,7 @@
   function renderRates() {
     $('rc-symbol').textContent = SYMBOL[rcCur];
     const out = $('rc-out');
-    const v = parseFloat($('rc-amount').value);
-    const others = ['NGN', 'USD', 'GBP'].filter((c) => c !== rcCur);
+    const v = parseFloat($('rc-amount').value);    const others = ['NGN', 'USD', 'GBP'].filter((c) => c !== rcCur);
     const row = (label, value) => {
       const li = document.createElement('li');
       const a = document.createElement('span'); a.className = 'cur'; a.textContent = label;
@@ -189,6 +249,8 @@
       $('rc-note').textContent = "Couldn't load today's rates. Check your connection and reload.";
     }
     renderRates();
+    // Hero tile: $50 in naira at the live rate.
+    if (rates && $('hero-ngn')) $('hero-ngn').textContent = money(50 * rates.usdNgn, 'NGN');
     if ($('p-result').classList.contains('hidden')) renderPreview();
   }
 

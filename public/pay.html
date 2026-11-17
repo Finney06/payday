@@ -7,12 +7,12 @@
   <meta name="description" content="Pay this invoice in dollars (ParyonUSD) or Bitcoin Cash. The money goes straight to the sender's wallet.">
   <meta property="og:title" content="You have an invoice to pay · Payday">
   <meta property="og:description" content="Pay in seconds with dollars (ParyonUSD) or Bitcoin Cash. Straight to the sender's wallet.">
-  <meta property="og:image" content="/icon.png">
-  <meta name="theme-color" content="#f1f4f1" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#09110d" media="(prefers-color-scheme: dark)">
+  <meta property="og:image" content="https://payday-gumx.onrender.com/icon.png">
+  <meta name="theme-color" content="#f4f4f6" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0b0b0f" media="(prefers-color-scheme: dark)">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Instrument+Sans:wght@400..700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400..700&family=Geist+Mono:wght@400;500&display=swap">
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/icon.png">
   <link rel="stylesheet" href="/styles.css">
@@ -21,7 +21,7 @@
   <header class="topbar">
     <a class="logo" href="/"><img src="/icon.svg" alt="" width="30" height="30">Payday</a>
     <span class="secure">
-      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="2"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="2"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>
       Paid straight to the sender
     </span>
   </header>
@@ -31,12 +31,12 @@
     <div id="loading" class="ticket skeleton" role="status">
       <span class="sr-only">Loading invoice…</span>
       <div class="ticket-body" aria-hidden="true">
-        <span class="bone" style="width:38%"></span>
+        <span class="bone" style="width:36%"></span>
         <span class="bone big"></span>
-        <span class="bone" style="width:54%"></span>
+        <span class="bone" style="width:52%"></span>
         <span class="bone" style="margin-top:10px"></span>
         <span class="bone"></span>
-        <span class="bone" style="width:76%"></span>
+        <span class="bone" style="width:74%"></span>
       </div>
     </div>
 
@@ -45,22 +45,24 @@
       <div class="glyph" aria-hidden="true">?</div>
       <h1>Invoice not found</h1>
       <p class="muted">This link may be mistyped, or the sender deleted the invoice. Ask them to send it again.</p>
-      <a class="btn secondary" href="/" style="margin-top:8px">Go to Payday</a>
+      <a class="btn secondary" href="/" style="margin-top:10px">Go to Payday</a>
     </div>
 
     <section id="invoice" class="hidden">
       <article class="ticket">
-        <div class="ticket-body">
+        <div class="ticket-top">
           <div class="ticket-head">
             <div class="from">
-              <span class="eyebrow">Invoice from</span>
+              <span class="label">Invoice from</span>
               <strong id="payee"></strong>
             </div>
             <span id="status" class="pill unpaid">Unpaid</span>
           </div>
           <div class="amount" id="amount"></div>
           <div class="amount-sub" id="amount-sub"></div>
-          <dl class="rows">
+        </div>
+        <div class="ticket-body">
+          <dl>
             <div class="row"><dt>For</dt><dd id="desc"></dd></div>
             <div class="row"><dt>Billed to</dt><dd id="client"></dd></div>
             <div class="row"><dt>Invoice</dt><dd id="inv-id" class="mono"></dd></div>
@@ -72,7 +74,7 @@
 
         <!-- Unpaid: choose how to pay -->
         <div id="pay-box" class="stub">
-          <span class="field-label" id="seg-label">Pay with</span>
+          <span class="label" id="seg-label">Pay with</span>
           <div class="seg" id="seg" role="group" aria-labelledby="seg-label">
             <button type="button" data-method="PUSD" aria-pressed="true">
               <span class="seg-title">Dollars</span>
@@ -103,7 +105,9 @@
 
         <!-- Paid: receipt -->
         <div id="paid-box" class="stub receipt hidden">
-          <div class="stamp" aria-hidden="true">Paid</div>
+          <div class="done-mark" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.500l4.500 4.500L19 7.500"/></svg>
+          </div>
           <h2>Payment received</h2>
           <p class="muted" id="paid-line"></p>
           <a id="proof" class="btn block secondary" target="_blank" rel="noopener">See proof on the blockchain</a>

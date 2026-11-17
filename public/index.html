@@ -7,132 +7,192 @@
   <meta name="description" content="Type one line in Telegram, share the pay link, and your client pays in dollars (ParyonUSD) or Bitcoin Cash, straight to your own wallet.">
   <meta property="og:title" content="Payday: send an invoice from a chat">
   <meta property="og:description" content="Get paid in dollars on Bitcoin Cash, straight to your own wallet. Built for African freelancers.">
-  <meta property="og:image" content="/icon.png">
-  <meta name="theme-color" content="#0a2419">
+  <meta property="og:url" content="https://payday-gumx.onrender.com/">
+  <meta property="og:image" content="https://payday-gumx.onrender.com/icon.png">
+  <meta name="theme-color" content="#f4f4f6" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0b0b0f" media="(prefers-color-scheme: dark)">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Instrument+Sans:wght@400..700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400..700&family=Geist+Mono:wght@400;500&display=swap">
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/icon.png">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <div class="forest">
-    <!-- Required BCH BLAZE banner. home.js fills the slides link and EMBER address from /api/config. -->
-    <aside class="blaze" aria-label="BCH BLAZE 2026 hackathon entry">
-      <div class="container blaze-in">
-        <span class="blaze-tag">BCH BLAZE 2026 entry</span>
-        <a id="slides-link" href="#" aria-disabled="true">Slides coming soon</a>
-        <a id="repo-link" href="https://github.com/Finney06/payday" target="_blank" rel="noopener">GitHub repo</a>
-        <span id="ember-row" class="ember hidden">
-          <span>EMBER2026</span>
-          <code id="ember-address"></code>
-          <button id="ember-copy" type="button" data-copy-from="ember-address">Copy</button>
-        </span>
+  <!-- Required BCH BLAZE banner. home.js fills the slides link and EMBER address from /api/config. -->
+  <aside class="blaze" aria-label="BCH BLAZE 2026 hackathon entry">
+    <div class="blaze-in">
+      <span class="blaze-tag">BCH BLAZE 2026 entry</span>
+      <a id="slides-link" href="#" aria-disabled="true">Slides coming soon</a>
+      <a id="repo-link" href="https://github.com/Finney06/payday" target="_blank" rel="noopener">GitHub repo</a>
+      <span id="ember-row" class="ember hidden">
+        <span>EMBER2026</span>
+        <code id="ember-address"></code>
+        <button id="ember-copy" type="button">Copy</button>
+      </span>
+    </div>
+  </aside>
+
+  <!-- Hero: one full-width section, text on the left, phone on the right -->
+  <header class="hero">
+    <div class="hero-in">
+      <div class="nav">
+        <a class="logo" href="/"><img src="/icon.svg" alt="" width="30" height="30">Payday</a>
+        <nav class="nav-links" aria-label="Main">
+          <a href="#how">How it works</a>
+          <a href="#make">Make an invoice</a>
+          <a class="nav-pill" href="https://t.me/PaydayInvoiceBot" target="_blank" rel="noopener">Open the bot</a>
+        </nav>
       </div>
-    </aside>
-
-    <header class="container nav">
-      <a class="logo" href="/"><img src="/icon.svg" alt="" width="30" height="30">Payday</a>
-      <nav class="nav-links" aria-label="Main">
-        <a href="#how">How it works</a>
-        <a href="#make">Make an invoice</a>
-        <a href="#rates">Rate check</a>
-        <a class="nav-cta" href="https://t.me/PaydayInvoiceBot" target="_blank" rel="noopener">Open the bot</a>
-      </nav>
-    </header>
-
-    <section class="container hero">
-      <div class="hero-copy">
-        <h1><span>Send an invoice from a chat.</span> <span><em>Get paid in dollars</em> on Bitcoin Cash.</span></h1>
-        <p class="hero-sub">Type one line in Telegram and share the pay link. Your client pays in digital dollars or BCH, and the money lands in your own wallet in seconds.</p>
-        <div class="hero-cta">
-          <a class="btn mint" href="/try"><span>Try it: pay a <span id="demo-amount">5¢</span> invoice</span></a>
-          <a class="btn on-forest" href="https://t.me/PaydayInvoiceBot" target="_blank" rel="noopener">
-            <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.5 2.5 2.5 8.6l5.2 2 2 5.4z"/><path d="m7.7 10.6 4.6-3.8"/></svg>
-            Open the Telegram bot
-          </a>
+      <div class="hero-body">
+        <div class="hero-copy">
+          <h1>
+            <span>Send an invoice from a chat.</span>
+            <span>Get paid <span class="hl">in dollars.</span></span>
+          </h1>
+          <p class="hero-sub">Share a pay link from Telegram. The money lands in your own wallet in seconds.</p>
+          <div class="cta">
+            <a class="btn white" href="/try"><span>Try it: pay a <span id="demo-amount">5¢</span> invoice</span></a>
+            <a class="btn line" href="https://t.me/PaydayInvoiceBot" target="_blank" rel="noopener">Open the Telegram bot</a>
+          </div>
         </div>
-        <ul class="hero-note">
-          <li>No sign-up</li>
-          <li>No bank needed</li>
-          <li>Payday never holds your money</li>
-        </ul>
+
+      <!-- Phone playing the Telegram flow on a loop (home.js). Decorative: the steps below say the same in words. -->
+      <div class="hero-phone" aria-hidden="true">
+        <div class="phone">
+          <div class="tg">
+            <div class="tg-status"><span>9:41</span><span class="tg-island"></span><span class="tg-icons"><i></i><i></i><i></i></span></div>
+            <div class="tg-head">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 4.5 7 10l5.5 5.5"/></svg>
+              <img src="/icon.svg" alt="" width="36" height="36">
+              <div><b>Payday</b><span id="tg-sub">bot</span></div>
+            </div>
+            <div class="tg-chat" id="tg-chat">
+              <!-- Shown as-is if scripts are off; home.js replays it as an animation. -->
+              <div class="tg-msg out">invoice Ayo $50 logo design<span class="tg-time">12:04 ✓✓</span></div>
+              <div class="tg-msg in">🧾 <b>Invoice k7m2xq9d</b><br>To: Ayo · $50.00 · logo design<br>Send this to your client 👇<br><span class="tg-link"><span class="host">payday</span>/pay/k7m2xq9d</span><span class="tg-time">12:04</span></div>
+              <div class="tg-msg in">🎉 <b>Ayo paid $50.00</b> in ParyonUSD.<br>The money is already in your wallet.<span class="tg-time">12:06</span></div>
+            </div>
+            <div class="tg-input"><span class="tg-field" id="tg-field">Message</span><span class="tg-send"><svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor"><path d="M2.5 9.2 17 3l-6.2 14.5-1.9-6.4z"/></svg></span></div>
+          </div>
+        </div>
       </div>
+      </div>
+    </div>
+  </header>
 
-      <!-- Phone mock: the real bot conversation, start to finish. Decorative, described by the steps below. -->
-      <div class="phone" aria-hidden="true">
-        <div class="phone-screen">
-          <div class="chat-head">
-            <img src="/icon.svg" alt="" width="34" height="34">
-            <div><b>Payday</b><span>bot</span></div>
-          </div>
-          <div class="chat-body">
-            <div class="chat-day">Today</div>
-            <div class="msg me" style="--d:.4s">invoice Ayo $50 logo design</div>
-            <div class="msg bot" style="--d:1.3s">
-              <b>🧾 Invoice k7m2xq9d</b>
-              <div class="msg-rows">
-                <span><b>To:</b> Ayo</span>
-                <span><b>For:</b> logo design</span>
-                <span><b>Amount:</b> $50.00</span>
-                <span><b>Status:</b> Unpaid</span>
-              </div>
-              Send this to your client 👇<br>
-              <span class="link"><span class="host">payday</span>/pay/k7m2xq9d</span>
-            </div>
-            <div class="chat-btn" style="--d:1.5s">📲 Send on WhatsApp</div>
-            <div class="msg bot win" style="--d:3s">
-              <b>🎉 Ayo paid $50.00</b> in ParyonUSD<br>
-              The money is already in your wallet.
-            </div>
-          </div>
-          <div class="chat-input"><span>Message</span><i></i></div>
-        </div>
+  <main class="page">
+    <section class="bento stats">
+      <div class="tile t-orange stat">
+        <div class="stat-top"><span>Ayo paid</span><span class="tick" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.500l4.500 4.500L19 7.500"/></svg></span></div>
+        <div><div class="big">$50.00</div><small>Straight to Finney's own wallet</small></div>
+      </div>
+      <div class="tile t-yellow stat">
+        <div class="stat-top"><span>Quote in naira, get paid in dollars</span></div>
+        <div><div class="big" id="hero-ngn">₦67,325</div><small>is $50 at today's live rate</small></div>
+      </div>
+      <div class="tile t-white stat">
+        <div class="stat-top"><span>Network fee</span></div>
+        <div><div class="big">Under 1¢</div><small>and it settles in seconds</small></div>
       </div>
     </section>
-  </div>
 
-  <main>
     <!-- How it works -->
-    <section class="container section" id="how">
-      <div class="section-head">
+    <section class="sec" id="how">
+      <div class="sec-head">
         <h2>From chat to paid in three steps</h2>
         <p>You never leave the chat. Your client never makes an account.</p>
       </div>
-      <ol class="steps">
-        <li class="step">
-          <span class="step-n">Chat</span>
+      <ol class="bento steps">
+        <li class="tile t-white step">
+          <div class="step-art art-purple" aria-hidden="true"><span class="bubble">invoice Tom £40 website fixes</span></div>
+          <span class="step-n" aria-hidden="true">1</span>
           <h3>Type one line</h3>
           <p>Tell the bot who, how much and what for. Price it in dollars, pounds or naira.</p>
-          <div class="step-demo type">invoice Tom £40 website fixes</div>
         </li>
-        <li class="step">
-          <span class="step-n">Link</span>
+        <li class="tile t-white step">
+          <div class="step-art art-yellow" aria-hidden="true">
+            <div class="mini">
+              <span class="mini-link">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M6.5 9.5a3 3 0 0 0 4.2 0l2-2a3 3 0 0 0-4.2-4.2l-.8.8"/><path d="M9.5 6.5a3 3 0 0 0-4.2 0l-2 2a3 3 0 0 0 4.2 4.2l.8-.8"/></svg>
+                <span><span class="host">payday</span>/pay/k7m2xq9d</span>
+              </span>
+              <div class="mini-share"><span>WhatsApp</span><span>Telegram</span><span>Copy</span></div>
+            </div>
+          </div>
+          <span class="step-n" aria-hidden="true">2</span>
           <h3>Share the pay link</h3>
           <p>The bot replies with a link and a ready-made message. Send it on WhatsApp, email, anywhere.</p>
-          <div class="step-demo link">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6.5 9.5a3 3 0 0 0 4.2 0l2-2a3 3 0 0 0-4.2-4.2l-.8.8"/><path d="M9.5 6.5a3 3 0 0 0-4.2 0l-2 2a3 3 0 0 0 4.2 4.2l.8-.8"/></svg>
-            <span><span class="host">payday</span>/pay/k7m2xq9d</span>
-          </div>
         </li>
-        <li class="step">
-          <span class="step-n">Paid</span>
+        <li class="tile t-white step">
+          <div class="step-art art-orange" aria-hidden="true">
+            <div class="mini">
+              <div class="mini-row"><span><b>Tom paid $52.71</b><small>Website fixes · ParyonUSD</small></span><span class="pill ok">Paid</span></div>
+            </div>
+          </div>
+          <span class="step-n" aria-hidden="true">3</span>
           <h3>Get paid in seconds</h3>
           <p>Your client scans a QR code with their wallet and pays. The bot tells you the moment it lands.</p>
-          <div class="step-demo done"><span>Tom paid $52.71</span><span class="pill paid">Paid</span></div>
         </li>
       </ol>
     </section>
 
+    <!-- On-chain -->
+    <section class="sec" id="onchain">
+      <div class="sec-head">
+        <h2>Built on Bitcoin Cash, not on trust</h2>
+        <p>Payday is a tool, not a bank. The money moves on a public blockchain, from your client's wallet to yours.</p>
+      </div>
+      <div class="bento">
+        <div class="tile t-night feat span7">
+          <span class="tag">Non-custodial</span>
+          <div class="flow" aria-hidden="true"><span class="node">Your client</span><span class="wire"></span><span class="node yours">Your wallet</span></div>
+          <div>
+            <h3>Nobody sits in the middle</h3>
+            <p style="margin-top:10px">Your client pays your own address directly. There is no Payday balance to freeze, no payout to wait for, and nothing for us to lose.</p>
+          </div>
+        </div>
+        <div class="tile t-purple feat span5">
+          <span class="tag">ParyonUSD stablecoin</span>
+          <div>
+            <h3>Invoice $50.<br>Receive $50.</h3>
+            <p style="margin-top:10px">Clients can pay in ParyonUSD, a dollar stablecoin on Bitcoin Cash, so the price can't swing between sending and getting paid.</p>
+          </div>
+        </div>
+        <div class="tile t-white feat">
+          <div class="qr-art" aria-hidden="true">
+            <svg viewBox="0 0 21 21" shape-rendering="crispEdges"><path fill="#101014" d="M0 0h7v7H0zM14 0h7v7h-7zM0 14h7v7H0z"/><path fill="#fff" d="M1 1h5v5H1zM15 1h5v5h-5zM1 15h5v5H1z"/><path fill="#101014" d="M2 2h3v3H2zM16 2h3v3h-3zM2 16h3v3H2zM9 1h2v2H9zM8 4h2v1H8zM11 5h2v3h-2zM9 8h1v3H9zM1 9h3v1H1zM5 10h3v2H5zM12 9h3v1h-3zM16 9h4v2h-4zM14 12h2v2h-2zM9 13h3v1H9zM10 15h2v3h-2zM13 16h3v1h-3zM17 14h3v2h-3zM15 18h2v2h-2zM18 18h2v3h-2zM8 18h1v3H8z"/></svg>
+          </div>
+          <div>
+            <h3>Scan, approve, done</h3>
+            <p style="margin-top:10px">Clients pay with Paytaca or any WizardConnect wallet. No account, no card details.</p>
+          </div>
+        </div>
+        <div class="tile t-yellow feat">
+          <div class="txbox"><span>tx a3f9e1…07c21e</span><span>✓ Confirmed</span></div>
+          <div>
+            <h3>Proof on the blockchain</h3>
+            <p style="margin-top:10px">Every paid invoice links to the public explorer, so nobody has to take anyone's word for it.</p>
+          </div>
+        </div>
+        <div class="tile t-orange feat">
+          <span class="tag">Built in Nigeria</span>
+          <div>
+            <h3>Chat first. Quote in naira.</h3>
+            <p style="margin-top:10px">Made for freelancers paid from abroad: share on WhatsApp and settle in seconds for under a cent.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Make an invoice on the web -->
-    <section class="container section" id="make" style="padding-top:0">
-      <div class="section-head">
-        <h2>No Telegram? Make an invoice right here</h2>
+    <section class="sec" id="make">
+      <div class="sec-head">
+        <h2>No Telegram? Make an invoice here</h2>
         <p>Fill this in and get a pay link to send to your client. Nothing to install.</p>
       </div>
-      <div class="maker">
-        <form id="invoice-form" class="panel form" novalidate>
+      <div class="bento">
+        <form id="invoice-form" class="tile t-white form span7" novalidate>
           <div class="pair">
             <div class="field">
               <label for="f-name">Your name</label>
@@ -168,21 +228,23 @@
           <button id="form-submit" class="btn block" type="submit">Create pay link</button>
         </form>
 
-        <!-- Live preview: the same ticket the client will see. After creating, the stub holds the link. -->
-        <div class="preview">
-          <div class="preview-label"><span class="eyebrow">What your client sees</span></div>
+        <!-- Live preview: the same invoice the client will see. After creating, the lower part holds the link. -->
+        <div class="tile t-purple preview-tile span5">
+          <span class="preview-label">What your client sees</span>
           <article class="ticket" id="preview" tabindex="-1" aria-live="polite">
-            <div class="ticket-body">
+            <div class="ticket-top">
               <div class="ticket-head">
                 <div class="from">
-                  <span class="eyebrow">Invoice from</span>
+                  <span class="label">Invoice from</span>
                   <strong id="p-name">Your name</strong>
                 </div>
                 <span id="p-status" class="pill draft">Preview</span>
               </div>
               <div class="amount" id="p-amount">$0.00</div>
               <div class="amount-sub" id="p-sub"></div>
-              <dl class="rows">
+            </div>
+            <div class="ticket-body">
+              <dl>
                 <div class="row"><dt>For</dt><dd id="p-desc">Services</dd></div>
                 <div class="row"><dt>Billed to</dt><dd id="p-client">Your client</dd></div>
               </dl>
@@ -192,7 +254,7 @@
               <p class="stub-empty">Your pay link will appear here.</p>
             </div>
             <div class="stub hidden" id="p-result">
-              <span class="field-label">Your pay link is ready</span>
+              <span class="label">Your pay link is ready</span>
               <a id="result-link" class="result-link" target="_blank" rel="noopener"></a>
               <div class="result-actions">
                 <button id="result-copy" class="btn" type="button">Copy link</button>
@@ -207,78 +269,58 @@
     </section>
 
     <!-- Rate check -->
-    <section class="rates" id="rates">
-      <div class="container section">
-        <div class="section-head">
-          <h2>What is it worth today?</h2>
-          <p>Check the live rate before you quote a client.</p>
-        </div>
-        <div class="rate-box">
-          <div class="rate-in">
-            <label class="rate-amount" for="rc-amount">
-              <span id="rc-symbol" aria-hidden="true">$</span>
-              <input id="rc-amount" type="number" inputmode="decimal" min="0" step="any" value="50" aria-label="Amount to convert">
-            </label>
-            <div class="chips" id="rc-cur" role="group" aria-label="Currency">
-              <button type="button" data-cur="USD" aria-pressed="true">USD</button>
-              <button type="button" data-cur="GBP" aria-pressed="false">GBP</button>
-              <button type="button" data-cur="NGN" aria-pressed="false">NGN</button>
-            </div>
+    <section class="sec" id="rates">
+      <div class="bento">
+        <div class="tile t-yellow rates-tile wide">
+          <div>
+            <h2>What is it worth today?</h2>
+            <p class="lede">Check the live rate before you quote a client, in dollars, pounds, naira or Bitcoin Cash.</p>
           </div>
           <div>
+            <div class="rate-in">
+              <label class="rate-amount" for="rc-amount">
+                <span id="rc-symbol" aria-hidden="true">$</span>
+                <input id="rc-amount" type="number" inputmode="decimal" min="0" step="any" value="50" aria-label="Amount to convert">
+              </label>
+              <div class="chips" id="rc-cur" role="group" aria-label="Currency">
+                <button type="button" data-cur="USD" aria-pressed="true">USD</button>
+                <button type="button" data-cur="GBP" aria-pressed="false">GBP</button>
+                <button type="button" data-cur="NGN" aria-pressed="false">NGN</button>
+              </div>
+            </div>
             <ul class="rate-out" id="rc-out" aria-live="polite">
               <li><span class="cur">Nigerian naira</span><span class="val">…</span></li>
               <li><span class="cur">British pounds</span><span class="val">…</span></li>
               <li><span class="cur">Bitcoin Cash</span><span class="val">…</span></li>
             </ul>
-            <p class="rate-note" id="rc-note" style="margin-top:12px">Loading today's rates…</p>
+            <p class="rate-note" id="rc-note">Loading today's rates…</p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Why -->
-    <section class="container section" id="why">
-      <div class="section-head">
-        <h2>Built for freelancers who get paid from abroad</h2>
-      </div>
-      <ul class="why">
-        <li>
-          <h3>Your money, your wallet</h3>
-          <p>Payday is non-custodial. Your client pays straight to your address, so there is no balance for anyone to hold, freeze or delay.</p>
-        </li>
-        <li>
-          <h3>Dollars, not price swings</h3>
-          <p>Clients can pay in ParyonUSD, a dollar stablecoin on Bitcoin Cash. Invoice $50 and $50 is what arrives.</p>
-        </li>
-        <li>
-          <h3>Made for how Africa works</h3>
-          <p>Chat first, share on WhatsApp, quote in naira. Payments settle in seconds for a network fee of less than a cent.</p>
-        </li>
-      </ul>
-    </section>
-
-    <section class="forest closing">
-      <div class="container closing-in">
-        <h2>Your next invoice is one message away.</h2>
-        <div class="hero-cta">
-          <a class="btn mint" href="https://t.me/PaydayInvoiceBot" target="_blank" rel="noopener">Open the Telegram bot</a>
-          <a class="btn on-forest" href="/try">Try the demo first</a>
+    <section class="sec">
+      <div class="bento">
+        <div class="tile t-night closing wide">
+          <h2>Your next invoice is one message away</h2>
+          <p>Open the bot, paste your wallet address once, and send your first invoice in under a minute.</p>
+          <div class="cta">
+            <a class="btn white" href="https://t.me/PaydayInvoiceBot" target="_blank" rel="noopener">Open the Telegram bot</a>
+            <a class="btn line" href="/try">Try the demo first</a>
+          </div>
         </div>
       </div>
     </section>
   </main>
 
-  <footer class="footer forest">
-    <div class="container footer-in">
-      <a class="logo" href="/"><img src="/icon.svg" alt="" width="30" height="30">Payday</a>
-      <div class="footer-links">
-        <a href="https://t.me/PaydayInvoiceBot" target="_blank" rel="noopener">Telegram bot</a>
-        <a href="https://github.com/Finney06/payday" target="_blank" rel="noopener">GitHub</a>
-        <a href="/try">Demo</a>
-      </div>
-      <p>Open source, MIT licence. Payday never holds your money. Built in Nigeria for BCH BLAZE 2026.</p>
+  <footer class="footer">
+    <a class="logo" href="/"><img src="/icon.svg" alt="" width="30" height="30">Payday</a>
+    <div class="footer-links">
+      <a href="https://t.me/PaydayInvoiceBot" target="_blank" rel="noopener">Telegram bot</a>
+      <a href="https://github.com/Finney06/payday" target="_blank" rel="noopener">GitHub</a>
+      <a href="/try">Demo</a>
     </div>
+    <p>Open source, MIT licence. Payday never holds your money. Built in Nigeria for BCH BLAZE 2026.</p>
   </footer>
 
   <script src="/home.js" defer></script>

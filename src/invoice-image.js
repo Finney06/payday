@@ -12,7 +12,7 @@ const FONTS = ['Geist-Regular', 'Geist-Medium', 'Geist-SemiBold', 'Geist-Bold', 
 
 const C = {
   page: '#f7f6f3', card: '#ffffff', ink: '#15171c', muted: '#5e6470', faint: '#8b909b', line: '#e8e6e1',
-  accent: '#2443e0', accentSoft: '#eef1fe', warn: '#85560a', warnSoft: '#fcf0d6', paid: '#0f7b4a', paidSoft: '#e4f5ec',
+  accent: '#5b37e6', accentSoft: '#f1edff', warn: '#85560a', warnSoft: '#fcf0d6', paid: '#0f7b4a', paidSoft: '#e4f5ec',
 };
 const W = 1080, H = 1350, PAD = 72;
 
@@ -25,9 +25,9 @@ const date = (ms) => new Date(ms).toLocaleDateString('en-GB', { day: 'numeric', 
 function logo(x, y, size) {
   const s = size / 256;
   return `<g transform="translate(${x} ${y}) scale(${s})">
-    <rect width="256" height="256" rx="60" fill="${C.accent}"/>
+    <rect width="256" height="256" rx="64" fill="${C.accent}"/>
     <path d="M76 74h62a42 42 0 0 1 0 84h-34v34H76z" fill="none" stroke="#fff" stroke-width="22" stroke-linejoin="round"/>
-    <path d="M148 186l14 14 30-34" fill="none" stroke="#ffd166" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/></g>`;
+    <path d="M148 186l14 14 30-34" fill="none" stroke="#ffd75e" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/></g>`;
 }
 
 function row(y, label, value) {
