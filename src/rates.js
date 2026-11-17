@@ -1,29 +1,64 @@
-// Live prices: BCH in USD/GBP/NGN from CoinGecko, cached for 5 minutes.
-// From those we derive USD->GBP and USD->NGN without a second API.
+// Live prices, with backups, because free APIs often rate-limit shared hosting IPs.
+// - BCH/USD: CoinGecko, then Coinbase Exchange, then Kraken (cached 5 min)
+// - USD -> GBP / NGN: open.er-api.com, then derived from CoinGecko (cached 6 h)
+// If every source fails we keep serving the last good values.
 
-const URL = 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin-cash&vs_currencies=usd,gbp,ngn';
-const TTL = 5 * 60 * 1000;
-let cache = null;
+const BCH_TTL = 5 * 60 * 1000;
+const FX_TTL = 6 * 60 * 60 * 1000;
+const UA = { 'user-agent': 'Payday/1.0 (+https://github.com/Finney06/payday)', accept: 'application/json' };
+
+let bch = null; // { usd, at }
+let fx = null;  // { gbp, ngn, at }
+let geckoFx = null; // FX derived from CoinGecko, used only if open.er-api fails
+
+async function getJson(url) {
+  const res = await fetch(url, { headers: UA, signal: AbortSignal.timeout(8000) });
+  if (!res.ok) throw new Error(`${new URL(url).host} HTTP ${res.status}`);
+  return res.json();
+}
+
+const bchSources = [
+  async () => {
+    const p = (await getJson('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin-cash&vs_currencies=usd,gbp,ngn'))['bitcoin-cash'];
+    if (p?.gbp && p?.ngn) geckoFx = { gbp: p.gbp / p.usd, ngn: p.ngn / p.usd, at: Date.now() };
+    return p?.usd;
+  },
+  async () => Number((await getJson('https://api.exchange.coinbase.com/products/BCH-USD/ticker')).price),
+  async () => {
+    const r = (await getJson('https://api.kraken.com/0/public/Ticker?pair=BCHUSD')).result;
+    return Number(Object.values(r || {})[0]?.c?.[0]);
+  },
+];
+
+async function loadBch() {
+  if (bch && Date.now() - bch.at < BCH_TTL) return bch;
+  const errors = [];
+  for (const source of bchSources) {
+    try {
+      const usd = await source();
+      if (usd > 0 && Number.isFinite(usd)) return (bch = { usd, at: Date.now() });
+    } catch (e) { errors.push(e.message); }
+  }
+  if (bch) return bch;
+  throw new Error(`Could not load the BCH price (${errors.join('; ')})`);
+}
+
+async function loadFx() {
+  if (fx && Date.now() - fx.at < FX_TTL) return fx;
+  try {
+    const d = await getJson('https://open.er-api.com/v6/latest/USD');
+    if (d?.rates?.NGN > 0 && d?.rates?.GBP > 0) return (fx = { gbp: d.rates.GBP, ngn: d.rates.NGN, at: Date.now() });
+    throw new Error('missing NGN/GBP');
+  } catch (e) {
+    if (geckoFx) return (fx = geckoFx);
+    if (fx) return fx;
+    throw new Error(`Could not load exchange rates (${e.message})`);
+  }
+}
 
 export async function getRates() {
-  if (cache && Date.now() - cache.at < TTL) return cache.rates;
-  try {
-    const res = await fetch(URL, { headers: { accept: 'application/json' }, signal: AbortSignal.timeout(8000) });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const { 'bitcoin-cash': p } = await res.json();
-    if (!p?.usd) throw new Error('no price');
-    const rates = {
-      bchUsd: p.usd,
-      usdGbp: p.gbp / p.usd,
-      usdNgn: p.ngn / p.usd,
-      at: Date.now(),
-    };
-    cache = { at: Date.now(), rates };
-    return rates;
-  } catch (err) {
-    if (cache) return cache.rates; // stale is better than nothing
-    throw new Error(`Could not load exchange rates: ${err.message}`);
-  }
+  const [b, f] = await Promise.all([loadBch(), loadFx()]);
+  return { bchUsd: b.usd, usdGbp: f.gbp, usdNgn: f.ngn, at: Math.min(b.at, f.at) };
 }
 
 // Convert what the freelancer typed into USD cents.
