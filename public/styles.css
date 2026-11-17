@@ -31,27 +31,8 @@
   --font: "Outfit", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --mono: "Geist Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
   --radius: 28px;
-  color-scheme: light;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #0b0b0f; --surface: #17171d; --raise: #1e1e25; --ink: #f2f2f5; --muted: #a2a2af; --faint: #8b8b97;
-    --line: #26262e; --line-strong: #383842;
-    --purple: #5b37e6; --purple-hover: #6a48f0; --purple-soft: #221c40; --purple-text: #ab95ff;
-    --yellow-soft: #2d2711; --orange-soft: #33200f; --night: #1c1c24;
-    --paid: #0a7a46; --green-soft: #10291b; --green-text: #5ee08f;
-    --danger: #ff9a7f; --danger-soft: #3a1a12;
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #0b0b0f; --surface: #17171d; --raise: #1e1e25; --ink: #f2f2f5; --muted: #a2a2af; --faint: #8b8b97;
-  --line: #26262e; --line-strong: #383842;
-  --purple: #5b37e6; --purple-hover: #6a48f0; --purple-soft: #221c40; --purple-text: #ab95ff;
-  --yellow-soft: #2d2711; --orange-soft: #33200f; --night: #1c1c24;
-  --paid: #0a7a46; --green-soft: #10291b; --green-text: #5ee08f;
-  --danger: #ff9a7f; --danger-soft: #3a1a12;
-  color-scheme: dark;
+  /* Light only, by choice: the site looks the same whatever the visitor's dark-mode setting. */
+  color-scheme: only light;
 }
 
 /* ---------- 2. Base ---------- */
@@ -312,19 +293,6 @@ button, input, select { font: inherit; color: inherit; }
 .art-purple { background: var(--purple-soft); }
 .art-yellow { background: var(--yellow-soft); }
 .art-orange { background: var(--orange-soft); }
-/* In dark mode the soft tints turn brown, so the pictures use the full colours. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .art-purple { background: var(--purple); }
-  :root:not([data-theme="light"]) .art-yellow { background: var(--yellow); }
-  :root:not([data-theme="light"]) .art-orange { background: var(--orange); }
-  :root:not([data-theme="light"]) .art-purple .bubble { background: #fff; color: #101014; }
-  :root:not([data-theme="light"]) .art-purple .bubble::after { background: #101014; }
-}
-:root[data-theme="dark"] .art-purple { background: var(--purple); }
-:root[data-theme="dark"] .art-yellow { background: var(--yellow); }
-:root[data-theme="dark"] .art-orange { background: var(--orange); }
-:root[data-theme="dark"] .art-purple .bubble { background: #fff; color: #101014; }
-:root[data-theme="dark"] .art-purple .bubble::after { background: #101014; }
 .step-n { width: 32px; height: 32px; border-radius: 50%; background: var(--ink); color: var(--bg); display: grid; place-items: center; font-weight: 600; font-size: 15px; }
 .step h3 { font-size: 23px; }
 .step p { color: var(--muted); }
