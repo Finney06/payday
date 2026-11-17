@@ -68,4 +68,6 @@ export const invoices = {
     return r.changes === 1;
   },
   txidUsed: (txid) => !!db.prepare('SELECT 1 FROM invoices WHERE txid = ?').get(txid),
+  deleteUnpaid: (id, chatId) =>
+    db.prepare(`DELETE FROM invoices WHERE id = ? AND chat_id = ? AND status = 'unpaid'`).run(id, chatId).changes === 1,
 };

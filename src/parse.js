@@ -26,7 +26,7 @@ export function parseAmount(token, nextToken = '') {
     currency = CURRENCY_WORDS[nextToken.toLowerCase()];
     usedNext = true;
   }
-  return { value, currency: currency ?? 'USD', usedNext };
+  return { value, currency: currency ?? 'USD', usedNext, explicit: !!currency };
 }
 
 export function parseInvoiceLine(text) {
