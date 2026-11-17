@@ -8,6 +8,9 @@ if (existsSync('.env')) {
   }
 }
 
+// Treat placeholder values typed into a hosting dashboard as empty.
+const opt = (v) => (!v || /^(none|-|n\/a|todo)$/i.test(v.trim()) ? '' : v.trim());
+
 export const config = {
   botToken: process.env.BOT_TOKEN || '',
   botUsername: process.env.BOT_USERNAME || '',
@@ -17,8 +20,8 @@ export const config = {
   network: process.env.NETWORK || 'mainnet', // mainnet | chipnet
   // Hackathon banner + "Try it" demo invoice
   repoUrl: process.env.REPO_URL || 'https://github.com/Finney06/payday',
-  slidesUrl: process.env.SLIDES_URL || '',
-  emberAddress: process.env.EMBER_ADDRESS || '',
+  slidesUrl: opt(process.env.SLIDES_URL),
+  emberAddress: opt(process.env.EMBER_ADDRESS),
   demoName: process.env.DEMO_NAME || 'Finney Osajere',
   demoAddress: process.env.DEMO_ADDRESS || '',
   demoChatId: process.env.DEMO_CHAT_ID ? Number(process.env.DEMO_CHAT_ID) : null,
