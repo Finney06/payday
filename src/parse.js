@@ -1,4 +1,4 @@
-// Turns one chat line like "invoice Ayo $50 logo design" into an invoice draft.
+// Turns one chat line like "invoice Sarah $50 logo design" into an invoice draft.
 
 const CURRENCY_WORDS = {
   usd: 'USD', dollar: 'USD', dollars: 'USD', pusd: 'USD',

@@ -79,8 +79,8 @@ function draftSummary(d) {
 }
 
 const HELP =
-  `<b>Fastest way:</b> type one line\n<code>invoice Ayo $50 logo design</code>\n` +
-  `<code>invoice KEY Academy ₦75000 press articles</code>\n<code>invoice Tom £40 website fixes</code>\n\n` +
+  `<b>Fastest way:</b> type one line\n<code>invoice Sarah $50 logo design</code>\n` +
+  `<code>invoice Bright Studio ₦75000 flyer design</code>\n<code>invoice Tom £40 website fixes</code>\n\n` +
   `Or tap <b>${BTN_NEW}</b> and I'll ask you 3 quick questions.\n\n` +
   `${BTN_LIST}: see who has paid, send reminders\n/address: change your wallet address\n/name: change the name clients see`;
 

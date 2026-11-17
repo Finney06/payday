@@ -327,6 +327,11 @@ button, input, select { font: inherit; color: inherit; }
 .qr-art { width: 76px; height: 76px; border-radius: 14px; background: #faf6ee; padding: 7px; border: 1px solid var(--line); }
 .qr-art svg { display: block; width: 100%; height: 100%; }
 
+/* What if something goes wrong? */
+.faq { display: grid; gap: 10px; align-content: start; }
+.faq h3 { font-size: 21px; }
+.faq p { color: var(--muted); }
+
 /* Make an invoice */
 .form { display: grid; gap: 18px; align-content: start; }
 .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }

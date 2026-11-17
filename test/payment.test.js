@@ -68,7 +68,7 @@ test('server rejects underpayment and payments for another invoice', async () =>
   const { submitPayment } = await import('../src/payments.js');
   const { lockingBytecodeToCashAddress } = await import('@bitauth/libauth');
   const payeeAddr = lockingBytecodeToCashAddress({ bytecode: payee, prefix: 'bitcoincash', tokenSupport: true }).address;
-  const inv = await invoices.create({ payeeName: 'Test', payeeAddress: payeeAddr, client: 'Ayo', description: 'logo', amountCents: 5000, inputAmount: 50, inputCurrency: 'USD' });
+  const inv = await invoices.create({ payeeName: 'Test', payeeAddress: payeeAddr, client: 'Sarah', description: 'logo', amountCents: 5000, inputAmount: 50, inputCurrency: 'USD' });
 
   const short = buildPayment({ utxos: wallet, method: 'PUSD', payeeLockingBytecode: payee, tokenAmount: 4999n, tokenCategory: PUSD, changeLockingBytecode: change, invoiceId: inv.id });
   await assert.rejects(submitPayment(inv, short.hex, 'PUSD'), /less than the invoice/);

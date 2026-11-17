@@ -69,9 +69,9 @@
             </div>
             <div class="tg-chat" id="tg-chat">
               <!-- Shown as-is if scripts are off; home.js replays it as an animation. -->
-              <div class="tg-msg out">invoice Ayo $50 logo design<span class="tg-time">12:04 ✓✓</span></div>
-              <div class="tg-msg in">🧾 <b>Invoice k7m2xq9d</b><br>To: Ayo · $50.00 · logo design<br>Send this to your client 👇<br><span class="tg-link"><span class="host">payday</span>/pay/k7m2xq9d</span><span class="tg-time">12:04</span></div>
-              <div class="tg-msg in">🎉 <b>Ayo paid $50.00</b> in ParyonUSD.<br>The money is already in your wallet.<span class="tg-time">12:06</span></div>
+              <div class="tg-msg out">invoice Sarah $50 logo design<span class="tg-time">12:04 ✓✓</span></div>
+              <div class="tg-msg in">🧾 <b>Invoice k7m2xq9d</b><br>To: Sarah · $50.00 · logo design<br>Send this to your client 👇<br><span class="tg-link"><span class="host">payday</span>/pay/k7m2xq9d</span><span class="tg-time">12:04</span></div>
+              <div class="tg-msg in">🎉 <b>Sarah paid $50.00</b> in ParyonUSD.<br>The money is already in your wallet.<span class="tg-time">12:06</span></div>
             </div>
             <div class="tg-input"><span class="tg-field" id="tg-field">Message</span><span class="tg-send"><svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor"><path d="M2.5 9.2 17 3l-6.2 14.5-1.9-6.4z"/></svg></span></div>
           </div>
@@ -84,7 +84,7 @@
   <main class="page">
     <section class="bento stats">
       <div class="tile t-orange stat">
-        <div class="stat-top"><span>Ayo paid</span><span class="tick" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.500l4.500 4.500L19 7.500"/></svg></span></div>
+        <div class="stat-top"><span>Sarah paid</span><span class="tick" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.500l4.500 4.500L19 7.500"/></svg></span></div>
         <div><div class="big">$50.00</div><small>Straight to Finney's own wallet</small></div>
       </div>
       <div class="tile t-yellow stat">
@@ -295,6 +295,40 @@
             </ul>
             <p class="rate-note" id="rc-note">Loading today's rates…</p>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- What if something goes wrong? (matches the README section) -->
+    <section class="sec" id="problems">
+      <div class="sec-head">
+        <h2>What if something goes wrong?</h2>
+        <p>Payday is a direct payment, like a bank transfer. Payday never holds the money, so here's what happens when things go wrong.</p>
+      </div>
+      <div class="bento">
+        <div class="tile t-white faq">
+          <h3>The client pays too little</h3>
+          <p>Payday checks the payment before it's sent. Too little, or not for this invoice, and it's refused. The client keeps their money.</p>
+        </div>
+        <div class="tile t-white faq">
+          <h3>The price moves</h3>
+          <p>Pay in ParyonUSD and $50 is always $50. Pay in BCH and the amount is locked for 20 minutes.</p>
+        </div>
+        <div class="tile t-white faq">
+          <h3>The wallet is short</h3>
+          <p>The pay page checks first. Not enough dollars but enough BCH? It offers to switch. Empty wallet? It says so, and nothing is sent.</p>
+        </div>
+        <div class="tile t-white faq">
+          <h3>Payday goes down</h3>
+          <p>Your money is already in your own wallet, and every payment is public on the blockchain. You never need Payday to reach your money.</p>
+        </div>
+        <div class="tile t-white faq">
+          <h3>The client wants a refund</h3>
+          <p>Blockchain payments can't be reversed, by anyone. You refund from your own wallet, the way you would with cash or a bank transfer.</p>
+        </div>
+        <div class="tile t-white faq">
+          <h3>The work isn't delivered</h3>
+          <p>Payday doesn't hold money in the middle, so it's the same trust as a normal invoice. Protected payments (escrow) are on our roadmap.</p>
         </div>
       </div>
     </section>

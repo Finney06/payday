@@ -43,10 +43,10 @@
       chat.append(el);
       return el;
     };
-    const LINE = 'invoice Ayo $50 logo design';
-    const INVOICE = '🧾 <b>Invoice k7m2xq9d</b><br>To: Ayo · $50.00 · logo design<br>Send this to your client 👇<br>' +
+    const LINE = 'invoice Sarah $50 logo design';
+    const INVOICE = '🧾 <b>Invoice k7m2xq9d</b><br>To: Sarah · $50.00 · logo design<br>Send this to your client 👇<br>' +
       '<span class="tg-link"><span class="host"></span>/pay/k7m2xq9d</span><span class="tg-time">12:04</span>';
-    const PAID = '🎉 <b>Ayo paid $50.00</b> in ParyonUSD.<br>The money is already in your wallet.<span class="tg-time">12:06</span>';
+    const PAID = '🎉 <b>Sarah paid $50.00</b> in ParyonUSD.<br>The money is already in your wallet.<span class="tg-time">12:06</span>';
 
     async function botTyping(ms) {
       sub.textContent = 'typing…';
