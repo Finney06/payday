@@ -36,7 +36,21 @@ export function createWeb({ getBotUsername, onPaid }) {
 
   app.get('/api/config', (_req, res) => res.json({
     botUsername: getBotUsername(), network: config.network, pusdCategory: config.pusdCategory,
+    repoUrl: config.repoUrl, slidesUrl: config.slidesUrl, emberAddress: config.emberAddress,
+    demoCents: config.demoCents,
   }));
+
+  // "Try it": a fresh 5-cent invoice for each visitor (judges), paid to Finney's wallet.
+  app.get('/try', (_req, res) => {
+    const addr = normalizeAddress(config.demoAddress);
+    if (!addr) return res.status(503).send('Demo is not configured yet.');
+    const inv = invoices.create({
+      chatId: config.demoChatId, payeeName: config.demoName, payeeAddress: addr.tokenAddress,
+      client: 'You', description: 'Payday demo payment',
+      amountCents: config.demoCents, inputAmount: config.demoCents / 100, inputCurrency: 'USD',
+    });
+    res.redirect(302, `/pay/${inv.id}`);
+  });
 
   app.get('/api/rates', async (_req, res) => {
     try { res.json(await getRates()); } catch (e) { res.status(503).json({ error: e.message }); }

@@ -37,7 +37,7 @@ function render() {
 
   const paid = invoice.status === 'paid';
   $('status').className = `pill ${paid ? 'paid' : 'unpaid'}`;
-  $('status').textContent = paid ? '✅ Paid' : '⏳ Unpaid';
+  $('status').textContent = paid ? 'Paid' : 'Unpaid';
   $('pay-box').classList.toggle('hidden', paid);
   $('paid-box').classList.toggle('hidden', !paid);
   if (paid) {
