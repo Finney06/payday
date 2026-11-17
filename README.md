@@ -55,6 +55,17 @@ npm start
 ```
 Requires Node.js 22+ (uses the built-in `node:sqlite`).
 
+## Testing
+- `npm test`: unit tests for building payments (ParyonUSD and BCH), wallet-short errors, and the server refusing underpayments and payments for another invoice.
+- `scripts/e2e-pay.mjs`: an **end-to-end payment** against a running server. It acts as the client's wallet through the same HTTP API as the pay page. It creates an invoice, reads the wallet's coins, gets the locked quote, builds the payment with `shared/tx.js`, signs it, and checks it with the Bitcoin Cash VM. Then it confirms that Payday refuses an underpayment, accepts and broadcasts the real payment, marks the invoice Paid, and refuses the same payment twice.
+  ```bash
+  # in one terminal: a separate chipnet server with the bot off
+  BOT_TOKEN= NETWORK=chipnet PORT=3200 DB_PATH=./data/chipnet-e2e.db node src/index.js
+  # in another: fund the payer address it prints (chipnet.bch.ninja faucet), then
+  node scripts/e2e-pay.mjs --base http://localhost:3200 --network chipnet --usd 0.01
+  ```
+  Passed on chipnet on 17 Nov 2026: [58de43d3…7402b42](https://chipnet.chaingraph.cash/tx/58de43d320e881c1b43566bd26a22bb8c9e2e8a57f059356a9668798d7402b42).
+
 ## Tech
 Node.js, [grammY](https://grammy.dev) (Telegram), Express, SQLite, [Libauth](https://libauth.org),
 [WizardConnect](https://gitlab.com/riftenlabs/lib/wizardconnect) for wallet connection.
