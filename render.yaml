@@ -1,0 +1,38 @@
+# Render Blueprint: creates the Payday web service + a free Postgres database.
+services:
+  - type: web
+    name: payday
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: npm ci && npm run build
+    startCommand: node --no-warnings src/index.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: 22.20.0
+      - key: NETWORK
+        value: mainnet
+      - key: BOT_TOKEN
+        sync: false
+      - key: DEMO_NAME
+        sync: false
+      - key: DEMO_ADDRESS
+        sync: false
+      - key: DEMO_CHAT_ID
+        sync: false
+      - key: DEMO_CENTS
+        value: "5"
+      - key: SLIDES_URL
+        sync: false
+      - key: EMBER_ADDRESS
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: payday-db
+          property: connectionString
+
+databases:
+  - name: payday-db
+    plan: free
+    region: frankfurt

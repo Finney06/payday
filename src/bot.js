@@ -92,7 +92,7 @@ export function createBot() {
   }
 
   async function createInvoice(ctx, draft) {
-    const me = freelancers.get(ctx.chat.id);
+    const me = await freelancers.get(ctx.chat.id);
     if (!me) return askAddress(ctx);
     let amountCents;
     try {
@@ -103,7 +103,7 @@ export function createBot() {
     if (amountCents < 1) return ctx.reply('That amount is too small. The minimum is $0.01.', { reply_markup: menu });
     if (amountCents > 10_000_00) return ctx.reply('For now the maximum is $10,000 per invoice.', { reply_markup: menu });
 
-    const inv = invoices.create({
+    const inv = await invoices.create({
       chatId: ctx.chat.id, payeeName: me.name, payeeAddress: me.address,
       client: draft.client, description: draft.description,
       amountCents, inputAmount: draft.amount, inputCurrency: draft.currency,
@@ -113,7 +113,7 @@ export function createBot() {
   }
 
   async function startGuided(ctx) {
-    if (!freelancers.get(ctx.chat.id)) return askAddress(ctx);
+    if (!await freelancers.get(ctx.chat.id)) return askAddress(ctx);
     state.set(ctx.chat.id, { step: 'client', draft: {} });
     await ctx.reply('<b>1/3</b> Who is the invoice for? (your client\'s name)', { ...HTML, reply_markup: cancelKb() });
   }
@@ -131,7 +131,7 @@ export function createBot() {
   }
 
   async function listInvoices(ctx) {
-    const rows = invoices.listForChat(ctx.chat.id);
+    const rows = await invoices.listForChat(ctx.chat.id);
     if (!rows.length) return ctx.reply(`No invoices yet. Tap <b>${BTN_NEW}</b> to make your first one.`, { ...HTML, reply_markup: menu });
     const paid = rows.filter((r) => r.status === 'paid').reduce((s, r) => s + r.amount_cents, 0);
     const owed = rows.filter((r) => r.status !== 'paid').reduce((s, r) => s + r.amount_cents, 0);
@@ -150,7 +150,7 @@ export function createBot() {
   // ---------- commands ----------
   bot.command('start', async (ctx) => {
     state.delete(ctx.chat.id);
-    const me = freelancers.get(ctx.chat.id);
+    const me = await freelancers.get(ctx.chat.id);
     if (me) {
       return ctx.reply(`Welcome back, ${esc(me.name)} 👋\nPayments go to <code>${shortAddress(me.address)}</code>.\n\n${HELP}`, { ...HTML, reply_markup: menu });
     }
@@ -161,8 +161,8 @@ export function createBot() {
   bot.command('new', startGuided);
   bot.command('invoices', listInvoices);
   bot.command('address', askAddress);
-  bot.command('name', (ctx) => {
-    if (!freelancers.get(ctx.chat.id)) return askAddress(ctx);
+  bot.command('name', async (ctx) => {
+    if (!await freelancers.get(ctx.chat.id)) return askAddress(ctx);
     state.set(ctx.chat.id, { step: 'name' });
     return ctx.reply('What name should clients see on your invoices? (your full name or business name)', { reply_markup: cancelKb() });
   });
@@ -197,14 +197,14 @@ export function createBot() {
   });
   bot.callbackQuery(/^remind:(\w+)$/, async (ctx) => {
     await ctx.answerCallbackQuery();
-    const inv = invoices.get(ctx.match[1]);
+    const inv = await invoices.get(ctx.match[1]);
     if (!inv || inv.chat_id !== ctx.chat.id) return;
     if (inv.status === 'paid') return ctx.reply(`Good news: ${inv.client} already paid ✅`);
     const text = reminderMessage(inv);
     await replyWithButtons(ctx, `Here's a polite reminder for <b>${esc(inv.client)}</b>. Tap to send it 👇\n\n<i>${esc(text)}</i>`, shareKeyboard(inv, text));
   });
   bot.callbackQuery(/^del:(\w+)$/, async (ctx) => {
-    const inv = invoices.get(ctx.match[1]);
+    const inv = await invoices.get(ctx.match[1]);
     if (!inv || inv.chat_id !== ctx.chat.id) return ctx.answerCallbackQuery('Not found');
     if (inv.status === 'paid') return ctx.answerCallbackQuery('Paid invoices can\'t be deleted');
     const kb = new InlineKeyboard().text('Yes, delete it', `delyes:${inv.id}`).text('No, keep it', 'delno');
@@ -212,7 +212,7 @@ export function createBot() {
     await ctx.reply(`Delete the invoice to <b>${esc(inv.client)}</b> for ${fmt.usd(inv.amount_cents)}? The pay link will stop working.`, { ...HTML, reply_markup: kb });
   });
   bot.callbackQuery(/^delyes:(\w+)$/, async (ctx) => {
-    const ok = invoices.deleteUnpaid(ctx.match[1], ctx.chat.id);
+    const ok = await invoices.deleteUnpaid(ctx.match[1], ctx.chat.id);
     await ctx.answerCallbackQuery(ok ? 'Deleted' : 'Could not delete');
     await ctx.editMessageText(ok ? '🗑 Invoice deleted.' : 'That invoice was already paid or deleted.').catch(() => {});
   });
@@ -235,9 +235,9 @@ export function createBot() {
     if (s?.step === 'address') {
       const addr = normalizeAddress(text);
       if (!addr) return ctx.reply('Hmm, that doesn\'t look like a Bitcoin Cash address. It starts with "bitcoincash:q…" or "bitcoincash:z…". Please paste it again.');
-      const existing = freelancers.get(ctx.chat.id);
+      const existing = await freelancers.get(ctx.chat.id);
       const name = existing?.name || displayName(ctx.from);
-      freelancers.save(ctx.chat.id, name, addr.tokenAddress);
+      await freelancers.save(ctx.chat.id, name, addr.tokenAddress);
       state.delete(ctx.chat.id);
       return ctx.reply(
         `✅ All set! Payments go to <code>${shortAddress(addr.address)}</code>\n` +
@@ -251,8 +251,8 @@ export function createBot() {
     }
 
     if (s?.step === 'name') {
-      const me = freelancers.get(ctx.chat.id);
-      freelancers.save(ctx.chat.id, text.slice(0, 60), me.address);
+      const me = await freelancers.get(ctx.chat.id);
+      await freelancers.save(ctx.chat.id, text.slice(0, 60), me.address);
       state.delete(ctx.chat.id);
       return ctx.reply(`Done. Clients will see <b>${esc(text.slice(0, 60))}</b>.`, { ...HTML, reply_markup: menu });
     }
@@ -283,7 +283,7 @@ export function createBot() {
     }
 
     // Not in any flow.
-    if (!freelancers.get(ctx.chat.id)) return askAddress(ctx);
+    if (!await freelancers.get(ctx.chat.id)) return askAddress(ctx);
     const draft = parseInvoiceLine(text);
     if (draft) return createInvoice(ctx, draft);
     return ctx.reply(`I didn't catch that 🙂\n\n${HELP}`, { ...HTML, reply_markup: menu });

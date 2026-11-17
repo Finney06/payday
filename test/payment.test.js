@@ -68,7 +68,7 @@ test('server rejects underpayment and payments for another invoice', async () =>
   const { submitPayment } = await import('../src/payments.js');
   const { lockingBytecodeToCashAddress } = await import('@bitauth/libauth');
   const payeeAddr = lockingBytecodeToCashAddress({ bytecode: payee, prefix: 'bitcoincash', tokenSupport: true }).address;
-  const inv = invoices.create({ payeeName: 'Test', payeeAddress: payeeAddr, client: 'Ayo', description: 'logo', amountCents: 5000, inputAmount: 50, inputCurrency: 'USD' });
+  const inv = await invoices.create({ payeeName: 'Test', payeeAddress: payeeAddr, client: 'Ayo', description: 'logo', amountCents: 5000, inputAmount: 50, inputCurrency: 'USD' });
 
   const short = buildPayment({ utxos: wallet, method: 'PUSD', payeeLockingBytecode: payee, tokenAmount: 4999n, tokenCategory: PUSD, changeLockingBytecode: change, invoiceId: inv.id });
   await assert.rejects(submitPayment(inv, short.hex, 'PUSD'), /less than the invoice/);
@@ -79,6 +79,6 @@ test('server rejects underpayment and payments for another invoice', async () =>
   // A correct (but unsigned, fake-coin) payment passes our checks and is then rejected by the real network.
   const good = buildPayment({ utxos: wallet, method: 'PUSD', payeeLockingBytecode: payee, tokenAmount: 5000n, tokenCategory: PUSD, changeLockingBytecode: change, invoiceId: inv.id });
   await assert.rejects(submitPayment(inv, good.hex, 'PUSD'), /network rejected|Could not reach/);
-  assert.equal(invoices.get(inv.id).status, 'unpaid');
+  assert.equal((await invoices.get(inv.id)).status, 'unpaid');
   setTimeout(() => process.exit(0), 100);
 });

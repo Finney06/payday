@@ -56,7 +56,7 @@ export async function submitPayment(inv, txHex, method) {
   if (!outputs.some((o) => o.lockingHex === tag)) throw new SubmitError('This payment is not linked to this invoice.');
 
   const txid = hashTransaction(hexToBin(txHex));
-  if (invoices.txidUsed(txid)) throw new SubmitError('This payment was already used.', 409);
+  if (await invoices.txidUsed(txid)) throw new SubmitError('This payment was already used.', 409);
 
   try {
     await chain.broadcast(txHex);
@@ -66,7 +66,7 @@ export async function submitPayment(inv, txHex, method) {
       throw new SubmitError(`The network rejected the payment: ${e.message}`, 502);
     }
   }
-  invoices.markPaid(inv.id, txid, paidWith);
+  await invoices.markPaid(inv.id, txid, paidWith);
   quotes.delete(inv.id);
-  return invoices.get(inv.id);
+  return await invoices.get(inv.id);
 }

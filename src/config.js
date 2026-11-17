@@ -11,7 +11,7 @@ if (existsSync('.env')) {
 export const config = {
   botToken: process.env.BOT_TOKEN || '',
   botUsername: process.env.BOT_USERNAME || '',
-  baseUrl: (process.env.BASE_URL || 'http://localhost:3000').replace(/\/$/, ''),
+  baseUrl: (process.env.BASE_URL || process.env.RENDER_EXTERNAL_URL || 'http://localhost:3000').replace(/\/$/, ''),
   port: Number(process.env.PORT || 3000),
   dbPath: process.env.DB_PATH || './data/payday.db',
   network: process.env.NETWORK || 'mainnet', // mainnet | chipnet

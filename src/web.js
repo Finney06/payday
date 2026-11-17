@@ -34,6 +34,8 @@ export function createWeb({ getBotUsername, onPaid }) {
   app.disable('x-powered-by');
   app.use(express.json({ limit: '20kb' }));
 
+  app.get('/health', (_req, res) => res.json({ ok: true }));
+
   app.get('/api/config', (_req, res) => res.json({
     botUsername: getBotUsername(), network: config.network, pusdCategory: config.pusdCategory,
     repoUrl: config.repoUrl, slidesUrl: config.slidesUrl, emberAddress: config.emberAddress,
@@ -41,10 +43,10 @@ export function createWeb({ getBotUsername, onPaid }) {
   }));
 
   // "Try it": a fresh 5-cent invoice for each visitor (judges), paid to Finney's wallet.
-  app.get('/try', (_req, res) => {
+  app.get('/try', async (_req, res) => {
     const addr = normalizeAddress(config.demoAddress);
     if (!addr) return res.status(503).send('Demo is not configured yet.');
-    const inv = invoices.create({
+    const inv = await invoices.create({
       chatId: config.demoChatId, payeeName: config.demoName, payeeAddress: addr.tokenAddress,
       client: 'You', description: 'Payday demo payment',
       amountCents: config.demoCents, inputAmount: config.demoCents / 100, inputCurrency: 'USD',
@@ -56,8 +58,8 @@ export function createWeb({ getBotUsername, onPaid }) {
     try { res.json(await getRates()); } catch (e) { res.status(503).json({ error: e.message }); }
   });
 
-  app.get('/api/invoice/:id', (req, res) => {
-    const inv = invoices.get(req.params.id);
+  app.get('/api/invoice/:id', async (req, res) => {
+    const inv = await invoices.get(req.params.id);
     if (!inv) return res.status(404).json({ error: 'Invoice not found' });
     res.json(publicInvoice(inv));
   });
@@ -76,7 +78,7 @@ export function createWeb({ getBotUsername, onPaid }) {
     try { amountCents = await toUsdCents(value, currency); } catch (e) { return res.status(503).json({ error: e.message }); }
     if (amountCents < 1 || amountCents > 10_000_00) return res.status(400).json({ error: 'Amount must be between $0.01 and $10,000.' });
 
-    const inv = invoices.create({
+    const inv = await invoices.create({
       payeeName: String(name).trim().slice(0, 60), payeeAddress: addr.tokenAddress,
       client: String(client).trim().slice(0, 60), description: String(description || 'Services').trim().slice(0, 120),
       amountCents, inputAmount: value, inputCurrency: currency,
@@ -101,7 +103,7 @@ export function createWeb({ getBotUsername, onPaid }) {
   });
 
   app.get('/api/invoice/:id/quote', async (req, res) => {
-    const inv = invoices.get(req.params.id);
+    const inv = await invoices.get(req.params.id);
     if (!inv) return res.status(404).json({ error: 'Invoice not found' });
     try {
       const q = await quoteBch(inv);
@@ -110,7 +112,7 @@ export function createWeb({ getBotUsername, onPaid }) {
   });
 
   app.post('/api/invoice/:id/submit', async (req, res) => {
-    const inv = invoices.get(req.params.id);
+    const inv = await invoices.get(req.params.id);
     if (!inv) return res.status(404).json({ error: 'Invoice not found' });
     const { txHex, method } = req.body || {};
     try {
