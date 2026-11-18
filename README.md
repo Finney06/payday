@@ -22,6 +22,9 @@ It's **non-custodial**: Payday never holds anyone's money.
 - Instant "✅ paid" notification in Telegram with blockchain proof
 - Web invoice creator for people without Telegram
 
+## Built during BCH BLAZE
+Payday did not exist on 14 November 2026, so there is no earlier demo or code to compare with. The first commit is from 16 November: [`3842292`](https://github.com/Finney06/payday/tree/3842292e886f867331f94abb15a468409e2f5144). All the work in this repository was done during the hackathon.
+
 ## What if something goes wrong?
 
 Payday is a direct payment, like a bank transfer: the client's wallet pays the freelancer's wallet.
