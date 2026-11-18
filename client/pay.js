@@ -1,6 +1,6 @@
 import QRCode from 'qrcode';
 import { cashAddressToLockingBytecode } from '@bitauth/libauth';
-import { WalletSession } from './wallet.js';
+import { WalletSession, loadPairing, forgetPairing } from './wallet.js';
 
 const $ = (id) => document.getElementById(id);
 const invoiceId = location.pathname.split('/').pop();
@@ -63,63 +63,77 @@ function setStep(step, message = '') {
 }
 
 // ---------- paying ----------
+function resumeSignature(approveMessage) {
+  setStep('working', approveMessage);
+  return session.waitForSignature();
+}
+
+async function requestSignature(walletName, approveMessage) {
+  setStep('working', `Connected to ${walletName} ✓ Checking your balance…`);
+  const utxos = await session.scan();
+  const payee = cashAddressToLockingBytecode(invoice.payeeAddress);
+  if (typeof payee === 'string') throw new Error('This invoice has an invalid payment address.');
+
+  const q = await (await fetch(`/api/invoice/${invoiceId}/quote`)).json();
+  if (!q.sats) throw new Error(q.error || 'Could not get the BCH price.');
+  const amountSats = BigInt(q.sats);
+
+  // Does the wallet have enough of the chosen currency? If not, offer the other one.
+  const FEE_ROOM = 3000n; // generous room for network fee + token dust
+  const pusdHave = utxos.filter((u) => u.token?.category === cfg.pusdCategory && !u.token.nft).reduce((s, u) => s + u.token.amount, 0n);
+  const bchHave = utxos.filter((u) => !u.token).reduce((s, u) => s + u.value, 0n);
+  const canPusd = pusdHave >= BigInt(invoice.amountCents) && bchHave >= FEE_ROOM;
+  const canBch = bchHave >= amountSats + FEE_ROOM;
+  const bchText = `${(Number(amountSats) / 1e8).toFixed(8).replace(/0+$/, '')} BCH`;
+  if (method === 'PUSD' && !canPusd && canBch) {
+    await offerSwitch(`Your wallet doesn't have enough ParyonUSD, but it has BCH.`, `Pay ${bchText} instead`);
+    selectMethod('BCH');
+  } else if (method === 'BCH' && !canBch && canPusd) {
+    await offerSwitch(`Your wallet doesn't have enough BCH, but it has ParyonUSD.`, `Pay ${(invoice.amountCents / 100).toFixed(2)} ParyonUSD instead`);
+    selectMethod('PUSD');
+  } else if (!canPusd && !canBch) {
+    throw new Error(bchHave === 0n && pusdHave === 0n
+      ? `This wallet is empty. Add a little BCH (about ${bchText}) or ParyonUSD and try again.`
+      : `Not enough funds: this invoice needs ${(invoice.amountCents / 100).toFixed(2)} ParyonUSD or about ${bchText} (plus a tiny network fee).`);
+  }
+  setStep('working', approveMessage);
+  return session.signPayment({
+    utxos, method,
+    payeeLockingBytecode: payee.bytecode,
+    amountSats,
+    tokenAmount: BigInt(invoice.amountCents),
+    tokenCategory: cfg.pusdCategory,
+    invoiceId,
+    prompt: `Pay ${usd(invoice.amountCents)} to ${invoice.payeeName} for ${invoice.description}`,
+  });
+}
+
 async function startPayment() {
   if (busy) return;
   busy = true;
   try {
     session = new WalletSession({
       prefix: cfg.network === 'mainnet' ? 'bitcoincash' : 'bchtest',
+      invoiceId,
+      method,
       onDisconnect: () => { if (busy) fail(new Error('The wallet disconnected. Please try again.')); },
     });
     $('qr').innerHTML = await QRCode.toString(session.qrUri, { type: 'svg', margin: 1, errorCorrectionLevel: 'M' });
     $('open-wallet').href = session.uri;
     $('open-wallet').classList.toggle('hidden', !isMobile);
     $('copy-link').classList.toggle('hidden', !isMobile);
-    $('copy-link').textContent = 'Copy wallet link';
+    $('copy-link').textContent = session.linkCopied ? 'Link copied ✓' : 'Copy wallet link';
     $('qr-wrap').classList.toggle('on-phone', isMobile);
     if (isMobile) $('qr-help').textContent = 'On this phone: copy the link, then in Paytaca open Apps → WizardConnect → Paste URL → Connect. Come back here after connecting.';
-    setStep('pairing', isMobile ? 'Waiting for your wallet to connect…' : 'Scan with Paytaca (or any WizardConnect wallet).');
+    const waiting = session.resumed ? 'Reconnecting to your wallet…' : 'Waiting for your wallet to connect…';
+    setStep('pairing', isMobile || session.resumed ? waiting : 'Scan with Paytaca (or any WizardConnect wallet).');
 
     const walletName = await session.waitForWallet();
     if (!busy) return;
-    setStep('working', `Connected to ${walletName} ✓ Checking your balance…`);
-
-    const utxos = await session.scan();
-    const payee = cashAddressToLockingBytecode(invoice.payeeAddress);
-    if (typeof payee === 'string') throw new Error('This invoice has an invalid payment address.');
-
-    const q = await (await fetch(`/api/invoice/${invoiceId}/quote`)).json();
-    if (!q.sats) throw new Error(q.error || 'Could not get the BCH price.');
-    const amountSats = BigInt(q.sats);
-
-    // Does the wallet have enough of the chosen currency? If not, offer the other one.
-    const FEE_ROOM = 3000n; // generous room for network fee + token dust
-    const pusdHave = utxos.filter((u) => u.token?.category === cfg.pusdCategory && !u.token.nft).reduce((s, u) => s + u.token.amount, 0n);
-    const bchHave = utxos.filter((u) => !u.token).reduce((s, u) => s + u.value, 0n);
-    const canPusd = pusdHave >= BigInt(invoice.amountCents) && bchHave >= FEE_ROOM;
-    const canBch = bchHave >= amountSats + FEE_ROOM;
-    const bchText = `${(Number(amountSats) / 1e8).toFixed(8).replace(/0+$/, '')} BCH`;
-    if (method === 'PUSD' && !canPusd && canBch) {
-      await offerSwitch(`Your wallet doesn't have enough ParyonUSD, but it has BCH.`, `Pay ${bchText} instead`);
-      selectMethod('BCH');
-    } else if (method === 'BCH' && !canBch && canPusd) {
-      await offerSwitch(`Your wallet doesn't have enough BCH, but it has ParyonUSD.`, `Pay ${(invoice.amountCents / 100).toFixed(2)} ParyonUSD instead`);
-      selectMethod('PUSD');
-    } else if (!canPusd && !canBch) {
-      throw new Error(bchHave === 0n && pusdHave === 0n
-        ? `This wallet is empty. Add a little BCH (about ${bchText}) or ParyonUSD and try again.`
-        : `Not enough funds: this invoice needs ${(invoice.amountCents / 100).toFixed(2)} ParyonUSD or about ${bchText} (plus a tiny network fee).`);
-    }
-    setStep('working', `Confirm the payment in ${walletName}…`);
-    const signedHex = await session.signPayment({
-      utxos, method,
-      payeeLockingBytecode: payee.bytecode,
-      amountSats,
-      tokenAmount: BigInt(invoice.amountCents),
-      tokenCategory: cfg.pusdCategory,
-      invoiceId,
-      prompt: `Pay ${usd(invoice.amountCents)} to ${invoice.payeeName} for ${invoice.description}`,
-    });
+    const approveMessage = isMobile ? `Open ${walletName} and approve the payment, then come back here.` : `Confirm the payment in ${walletName}…`;
+    const signedHex = session.hasPendingSignature
+      ? await resumeSignature(approveMessage)
+      : await requestSignature(walletName, approveMessage);
 
     setStep('working', 'Sending payment…');
     const res = await fetch(`/api/invoice/${invoiceId}/submit`, {
@@ -199,6 +213,7 @@ $('copy-link').addEventListener('click', async () => {
     try { copied = document.execCommand('copy'); } catch { /* handled below */ }
     box.remove();
   }
+  if (copied) session.markCopied();
   $('copy-link').textContent = copied ? 'Link copied ✓' : 'Copy failed: scan the code instead';
 });
 $('cancel-btn').addEventListener('click', cancel);
@@ -220,6 +235,13 @@ async function load() {
   invoice = await invRes.json();
   $('invoice').classList.remove('hidden');
   render();
+  // A phone may have reloaded this page while the payer was in their wallet: carry on where they left off.
+  const pairing = loadPairing(invoiceId);
+  if (pairing && invoice.status === 'paid') forgetPairing(invoiceId);
+  else if (pairing) {
+    if (pairing.method) selectMethod(pairing.method);
+    startPayment();
+  }
   try { rates = await (await fetch('/api/rates')).json(); render(); } catch { /* optional */ }
 }
 load();
