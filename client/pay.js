@@ -121,7 +121,7 @@ async function startPayment() {
     $('qr').innerHTML = await QRCode.toString(session.qrUri, { type: 'svg', margin: 1, errorCorrectionLevel: 'M' });
     $('open-wallet').href = session.uri;
     $('open-wallet').classList.toggle('hidden', !isMobile);
-    $('copy-link').classList.toggle('hidden', !isMobile);
+    $('copy-link').classList.remove('hidden');
     $('copy-link').textContent = session.linkCopied ? 'Link copied ✓' : 'Copy wallet link';
     $('qr-wrap').classList.toggle('on-phone', isMobile);
     if (isMobile) $('qr-help').textContent = 'On this phone: copy the link, then in Paytaca open Apps → WizardConnect → Paste URL → Connect. Come back here after connecting.';
@@ -197,7 +197,7 @@ document.querySelectorAll('#seg button').forEach((b) => b.addEventListener('clic
   renderSendAmount();
 }));
 $('pay-btn').addEventListener('click', startPayment);
-$('copy-link').addEventListener('click', async () => {
+async function copyWalletLink() {
   if (!session) return;
   let copied = false;
   try {
@@ -215,7 +215,9 @@ $('copy-link').addEventListener('click', async () => {
   }
   if (copied) session.markCopied();
   $('copy-link').textContent = copied ? 'Link copied ✓' : 'Copy failed: scan the code instead';
-});
+}
+$('copy-link').addEventListener('click', copyWalletLink);
+$('qr').addEventListener('click', copyWalletLink);
 $('cancel-btn').addEventListener('click', cancel);
 
 // If it gets paid from another device, update this page too.

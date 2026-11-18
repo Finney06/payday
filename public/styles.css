@@ -171,10 +171,11 @@ button, input, select { font: inherit; color: inherit; }
 .wallet:has(#qr-wrap.hidden) .progress li:nth-child(1) { border-color: var(--purple-text); }
 
 #qr-wrap { display: grid; gap: 14px; justify-items: center; }
-.qr { width: 232px; max-width: 100%; aspect-ratio: 1; background: #fff; padding: 12px; border-radius: 22px; border: 1px solid var(--line); }
+.qr { appearance: none; display: block; cursor: pointer; width: 232px; max-width: 100%; aspect-ratio: 1; background: #fff; padding: 12px; border-radius: 22px; border: 1px solid var(--line); }
+.qr:hover { border-color: var(--purple); }
 .qr svg { display: block; width: 100%; height: auto; }
 .qr-help { font-size: 15px; color: var(--muted); text-align: center; max-width: 30ch; }
-#copy-link { order: -2; }
+#qr-wrap.on-phone #copy-link { order: -2; }
 #qr-wrap.on-phone .qr-help { order: -3; max-width: 36ch; }
 #open-wallet { width: 100%; }
 .spinner-row { display: flex; justify-content: center; }
