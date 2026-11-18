@@ -71,7 +71,7 @@ Requires Node.js 22+ (uses the built-in `node:sqlite`).
 
 ## Tech
 Node.js, [grammY](https://grammy.dev) (Telegram), Express, SQLite, [Libauth](https://libauth.org),
-[WizardConnect](https://gitlab.com/riftenlabs/lib/wizardconnect) for wallet connection.
+[WizardConnect](https://gitlab.com/riftenlabs/lib/wizardconnect) for wallet connection. The WizardConnect logo on the pay page comes from that project (LGPL-3.0-or-later).
 
 ## License
 MIT

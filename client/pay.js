@@ -118,7 +118,9 @@ async function startPayment() {
       method,
       onDisconnect: () => { if (busy) fail(new Error('The wallet disconnected. Please try again.')); },
     });
-    $('qr').innerHTML = await QRCode.toString(session.qrUri, { type: 'svg', margin: 1, errorCorrectionLevel: 'M' });
+    // Highest error correction, so the code still scans with the WizardConnect logo over its centre.
+    const qrSvg = await QRCode.toString(session.qrUri, { type: 'svg', margin: 1, errorCorrectionLevel: 'H' });
+    $('qr').innerHTML = `${qrSvg}<img class="qr-logo" src="/wizardconnect-logo.png" alt="">`;
     $('open-wallet').href = session.uri;
     $('open-wallet').classList.toggle('hidden', !isMobile);
     $('copy-link').classList.remove('hidden');
