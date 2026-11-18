@@ -41,9 +41,8 @@ async function qrSvg(text, x, y, size) {
   return svg.replace('<svg ', `<svg x="${x}" y="${y}" width="${size}" height="${size}" `);
 }
 
-export async function renderInvoicePng(inv) {
+export async function renderInvoicePng(inv, { payUrl = `${config.baseUrl}/pay/${inv.id}` } = {}) {
   const paid = inv.status === 'paid';
-  const payUrl = `${config.baseUrl}/pay/${inv.id}`;
   let sub = '';
   if (inv.input_currency === 'NGN') sub = `NGN ${num(inv.input_amount)} at today's rate`;
   else if (inv.input_currency === 'GBP') sub = `£${num(inv.input_amount, 2)} at today's rate`;

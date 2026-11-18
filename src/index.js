@@ -1,12 +1,14 @@
 import { config } from './config.js';
 import { createBot, setBotProfile, notifyPaid } from './bot.js';
 import { createWeb } from './web.js';
+import { startKeepAwake } from './keep-awake.js';
 
 const bot = createBot();
 let botUsername = config.botUsername;
 
 const app = createWeb({ getBotUsername: () => botUsername, onPaid: (inv) => notifyPaid(bot, inv) });
 const server = app.listen(config.port, () => console.log(`Payday web running on ${config.baseUrl} (port ${config.port}, ${config.network})`));
+startKeepAwake(config.baseUrl);
 
 // Long polling. During a redeploy the old and new servers overlap for a moment and Telegram
 // answers "409 Conflict" to one of them, so keep retrying instead of giving up.

@@ -44,8 +44,9 @@
       return el;
     };
     const LINE = 'invoice Sarah $50 logo design';
-    const INVOICE = '🧾 <b>Invoice k7m2xq9d</b><br>To: Sarah · $50.00 · logo design<br>Send this to your client 👇<br>' +
-      '<span class="tg-link"><span class="host"></span>/pay/k7m2xq9d</span><span class="tg-time">12:04</span>';
+    const INVOICE = '<img class="tg-photo" src="/demo-invoice.png" alt="" width="200" height="250">' +
+      '<div class="tg-cap"><b>Invoice k7m2xq9d</b><br>Send this to Sarah 👇<br>' +
+      '<span class="tg-link"><span class="host"></span><br>/pay/k7m2xq9d</span><span class="tg-time">12:04</span></div>';
     const PAID = '🎉 <b>Sarah paid $50.00</b> in ParyonUSD.<br>The money is already in your wallet.<span class="tg-time">12:06</span>';
 
     async function botTyping(ms) {
@@ -73,8 +74,8 @@
         await sleep(500);
         // The bot replies with the invoice and share buttons.
         await botTyping(1100);
-        add('tg-msg in', INVOICE);
-        const kb = add('tg-kb', '<span>📲 Send on WhatsApp</span><span>✈️ Share on Telegram</span>');
+        add('tg-msg in tg-media', INVOICE);
+        const kb = add('tg-kb', '<span>📲 WhatsApp</span><span>✈️ Telegram</span>');
         await sleep(1700);
         kb.firstElementChild.classList.add('pressed');
         await sleep(450);
