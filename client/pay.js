@@ -23,6 +23,8 @@ function renderSendAmount() {
 }
 
 function render() {
+  $('pdf-invoice').href = `/i/${invoiceId}.pdf`;
+  $('pdf-receipt').href = `/i/${invoiceId}.pdf`;
   document.title = `Pay ${usd(invoice.amountCents)} to ${invoice.payeeName} · Payday`;
   $('payee').textContent = invoice.payeeName;
   $('amount').textContent = usd(invoice.amountCents);

@@ -1,5 +1,5 @@
 import { Bot, InlineKeyboard, Keyboard, InputFile } from 'grammy';
-import { renderInvoicePng } from './invoice-image.js';
+import { renderInvoicePng, renderInvoicePdf } from './invoice-image.js';
 import { config } from './config.js';
 import { freelancers, invoices } from './db.js';
 import { normalizeAddress, shortAddress } from './address.js';
@@ -34,14 +34,29 @@ export function reminderMessage(inv) {
     `(${fmt.usd(inv.amount_cents)}). Here's the pay link again: ${payLink(inv)}\nThank you!`;
 }
 
-function shareKeyboard(inv, text, { withDelete = false } = {}) {
+// Telegram only accepts public URLs on buttons (not localhost).
+const publicUrls = () => /^https:\/\//.test(config.baseUrl);
+
+// The short set shown under a new invoice. The other actions open from here.
+export function invoiceKeyboard(inv) {
+  return new InlineKeyboard()
+    .text('📤 Send to client', `send:${inv.id}`).row()
+    .text('📄 PDF', `pdf:${inv.id}`).text('⋯ More', `more:${inv.id}`);
+}
+
+export function shareKeyboard(inv, text, { back = false } = {}) {
   const kb = new InlineKeyboard()
-    .url('📲 Send on WhatsApp', `https://wa.me/?text=${encodeURIComponent(text)}`).row()
-    .url('✈️ Share on Telegram', `https://t.me/share/url?url=${encodeURIComponent(payLink(inv))}&text=${encodeURIComponent(text.split('\n')[0])}`);
-  // Telegram only accepts public URLs on buttons (not localhost).
-  if (/^https:\/\//.test(config.baseUrl)) kb.row().url('👀 Open pay page', payLink(inv));
-  if (withDelete) kb.row().text('🗑 Delete invoice', `del:${inv.id}`);
+    .url('WhatsApp', `https://wa.me/?text=${encodeURIComponent(text)}`)
+    .url('Telegram', `https://t.me/share/url?url=${encodeURIComponent(payLink(inv))}&text=${encodeURIComponent(text.split('\n')[0])}`);
+  if (publicUrls()) kb.row().url('Email', `${config.baseUrl}/email/${inv.id}`);
+  if (back) kb.row().text('← Back', `inv:${inv.id}`);
   return kb;
+}
+
+export function moreKeyboard(inv) {
+  const kb = new InlineKeyboard();
+  if (publicUrls()) kb.url('Open pay page', payLink(inv)).row();
+  return kb.text('Delete invoice', `del:${inv.id}`).row().text('← Back', `inv:${inv.id}`);
 }
 
 // Send the invoice as an image with the details as caption; fall back to plain text if the image fails.
@@ -121,7 +136,7 @@ export function createBot() {
       amountCents, inputAmount: draft.amount, inputCurrency: draft.currency,
     });
     state.delete(ctx.chat.id);
-    await replyWithInvoice(ctx, inv, invoiceCard(inv), shareKeyboard(inv, clientMessage(inv), { withDelete: true }));
+    await replyWithInvoice(ctx, inv, invoiceCard(inv), invoiceKeyboard(inv));
   }
 
   async function startGuided(ctx) {
@@ -214,6 +229,30 @@ export function createBot() {
     if (inv.status === 'paid') return ctx.reply(`Good news: ${inv.client} already paid ✅`);
     const text = reminderMessage(inv);
     await replyWithButtons(ctx, `Here's a polite reminder for <b>${esc(inv.client)}</b>. Tap to send it 👇\n\n<i>${esc(text)}</i>`, shareKeyboard(inv, text));
+  });
+  const ownInvoice = async (ctx) => {
+    const inv = await invoices.get(ctx.match[1]);
+    return inv && inv.chat_id === ctx.chat.id ? inv : null;
+  };
+  const showKeyboard = async (ctx, makeKeyboard) => {
+    const inv = await ownInvoice(ctx);
+    if (!inv) return ctx.answerCallbackQuery('Not found');
+    await ctx.answerCallbackQuery();
+    await ctx.editMessageReplyMarkup({ reply_markup: makeKeyboard(inv) }).catch(() => {});
+  };
+  bot.callbackQuery(/^send:(\w+)$/, (ctx) => showKeyboard(ctx, (inv) => shareKeyboard(inv, clientMessage(inv), { back: true })));
+  bot.callbackQuery(/^more:(\w+)$/, (ctx) => showKeyboard(ctx, moreKeyboard));
+  bot.callbackQuery(/^inv:(\w+)$/, (ctx) => showKeyboard(ctx, invoiceKeyboard));
+  bot.callbackQuery(/^pdf:(\w+)$/, async (ctx) => {
+    const inv = await ownInvoice(ctx);
+    if (!inv) return ctx.answerCallbackQuery('Not found');
+    await ctx.answerCallbackQuery('Preparing your PDF…');
+    try {
+      await ctx.replyWithDocument(new InputFile(await renderInvoicePdf(inv), `Payday-invoice-${inv.id}.pdf`), { caption: `Invoice for ${inv.client}` });
+    } catch (err) {
+      console.error('invoice pdf failed:', err.message);
+      await ctx.reply('Sorry, I could not create the PDF. Please try again.');
+    }
   });
   bot.callbackQuery(/^del:(\w+)$/, async (ctx) => {
     const inv = await invoices.get(ctx.match[1]);

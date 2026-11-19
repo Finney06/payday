@@ -3,6 +3,7 @@ import { Resvg } from '@resvg/resvg-js';
 import QRCode from 'qrcode';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { deflateSync } from 'node:zlib';
 import { config } from './config.js';
 import { getRates } from './rates.js';
 
@@ -41,7 +42,7 @@ async function qrSvg(text, x, y, size) {
   return svg.replace('<svg ', `<svg x="${x}" y="${y}" width="${size}" height="${size}" `);
 }
 
-export async function renderInvoicePng(inv, { payUrl = `${config.baseUrl}/pay/${inv.id}` } = {}) {
+async function invoiceSvg(inv, payUrl) {
   const paid = inv.status === 'paid';
   let sub = '';
   if (inv.input_currency === 'NGN') sub = `NGN ${num(inv.input_amount)} at today's rate`;
@@ -80,7 +81,7 @@ export async function renderInvoicePng(inv, { payUrl = `${config.baseUrl}/pay/${
       <text x="${qx + q + 56}" y="${qy + 222}" font-family="Geist Mono" font-size="22" fill="${C.accent}">${esc(clip(payUrl.replace(/^https?:\/\//, ''), 34))}</text>`;
   }
 
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
     <rect width="${W}" height="${H}" fill="${C.page}"/>
     ${logo(PAD, 52, 64)}
     <text x="${PAD + 84}" y="98" font-family="Geist" font-weight="600" font-size="38" fill="${C.ink}">Payday</text>
@@ -106,10 +107,55 @@ export async function renderInvoicePng(inv, { payUrl = `${config.baseUrl}/pay/${
 
     <text x="${W / 2}" y="${H - 50}" text-anchor="middle" font-family="Geist" font-size="26" fill="${C.faint}">Paid straight to ${esc(clip(inv.payee_name, 24))}'s wallet · Payday never holds your money</text>
   </svg>`;
+}
 
-  const png = new Resvg(svg, {
-    fitTo: { mode: 'width', value: W },
-    font: { fontFiles: FONTS, loadSystemFonts: false, defaultFontFamily: 'Geist' },
-  }).render().asPng();
-  return png;
+const rasterize = (svg) => new Resvg(svg, {
+  fitTo: { mode: 'width', value: W },
+  font: { fontFiles: FONTS, loadSystemFonts: false, defaultFontFamily: 'Geist' },
+}).render();
+
+export async function renderInvoicePng(inv, { payUrl = `${config.baseUrl}/pay/${inv.id}` } = {}) {
+  return rasterize(await invoiceSvg(inv, payUrl)).asPng();
+}
+
+// A one-page A4 PDF of the same invoice. Unpaid invoices link the pay area to the pay page.
+export async function renderInvoicePdf(inv, { payUrl = `${config.baseUrl}/pay/${inv.id}` } = {}) {
+  const image = rasterize(await invoiceSvg(inv, payUrl));
+  const { width, height, pixels } = image;
+  const rgb = Buffer.alloc(width * height * 3);
+  for (let i = 0, j = 0; i < pixels.length; i += 4, j += 3) {
+    rgb[j] = pixels[i]; rgb[j + 1] = pixels[i + 1]; rgb[j + 2] = pixels[i + 2];
+  }
+  const data = deflateSync(rgb);
+
+  const pageW = 595.28, pageH = 841.89, drawW = 540, scale = drawW / width, drawH = height * scale;
+  const x = (pageW - drawW) / 2, y = (pageH - drawH) / 2;
+  const n = (v) => Number(v.toFixed(2));
+  const pdfText = (s) => `(${String(s).replace(/[\\()]/g, '\\$&').replace(/[^\x20-\x7e]/g, '?')})`;
+  const content = `q ${n(drawW)} 0 0 ${n(drawH)} ${n(x)} ${n(y)} cm /Invoice Do Q`;
+  const link = inv.status === 'paid' ? '' : `/Annots [6 0 R]`;
+  const rect = [x + 106 * scale, y + drawH - 1199 * scale, x + 960 * scale, y + drawH - 891 * scale].map(n).join(' ');
+  const objects = [
+    '<< /Type /Catalog /Pages 2 0 R >>',
+    '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+    `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageW} ${pageH}] /Resources << /XObject << /Invoice 5 0 R >> >> /Contents 4 0 R ${link} >>`,
+    { dict: `<< /Length ${Buffer.byteLength(content)} >>`, stream: Buffer.from(content) },
+    { dict: `<< /Type /XObject /Subtype /Image /Width ${width} /Height ${height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /FlateDecode /Length ${data.length} >>`, stream: data },
+    `<< /Type /Annot /Subtype /Link /Rect [${rect}] /Border [0 0 0] /A << /S /URI /URI ${pdfText(payUrl)} >> >>`,
+    `<< /Title ${pdfText(`Invoice ${inv.id}`)} /Producer (Payday) >>`,
+  ];
+
+  const parts = [Buffer.from('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n', 'latin1')];
+  const offsets = [];
+  let size = parts[0].length;
+  const push = (b) => { parts.push(b); size += b.length; };
+  objects.forEach((obj, i) => {
+    offsets.push(size);
+    push(Buffer.from(`${i + 1} 0 obj\n${typeof obj === 'string' ? obj : `${obj.dict}\nstream\n`}`, 'latin1'));
+    if (typeof obj !== 'string') { push(obj.stream); push(Buffer.from('\nendstream')); }
+    push(Buffer.from('\nendobj\n'));
+  });
+  const xref = size;
+  push(Buffer.from(`xref\n0 ${objects.length + 1}\n0000000000 65535 f \n${offsets.map((o) => `${String(o).padStart(10, '0')} 00000 n \n`).join('')}trailer\n<< /Size ${objects.length + 1} /Root 1 0 R /Info 7 0 R >>\nstartxref\n${xref}\n%%EOF\n`));
+  return Buffer.concat(parts);
 }

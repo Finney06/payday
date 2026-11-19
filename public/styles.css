@@ -358,6 +358,12 @@ button, input, select { font: inherit; color: inherit; }
 .result-link { display: block; padding: 13px 16px; border-radius: 16px; background: var(--raise); font-family: var(--mono); font-size: 14px; color: var(--ink); overflow-wrap: anywhere; text-decoration: none; }
 .result-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
 .result-actions .btn { padding-inline: 14px; }
+.result-more { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 24px; font-size: 15px; font-weight: 500; }
+.result-more a { color: var(--purple-text); }
+.email-draft { display: grid; gap: 14px; }
+.email-draft h1 { margin: 0; font-size: 30px; line-height: 1.1; }
+.email-draft p { margin: 0; }
+.email-draft pre { margin: 0; padding: 16px; overflow-wrap: anywhere; white-space: pre-wrap; border-radius: 16px; background: var(--raise); font-family: var(--mono); font-size: 13.5px; line-height: 1.5; }
 .stub-empty { font-size: 15px; color: var(--muted); text-align: center; }
 
 /* Rate check (yellow tile) */

@@ -65,7 +65,7 @@
     const stampInvoice = () => chat.querySelector('.tg-photo-wrap')?.insertAdjacentHTML('beforeend', STAMP);
 
     // The first thing a visitor sees: one message became a paid invoice.
-    function showResult() {
+    function showPaidChat() {
       chat.replaceChildren();
       add('tg-msg out', `${LINE}<span class="tg-time">12:04 ✓✓</span>`);
       add('tg-msg in tg-media', PHOTO);
@@ -74,7 +74,7 @@
     }
 
     async function play() {
-      showResult();
+      showPaidChat();
       await sleep(4200);
       chat.classList.add('fade');
       await sleep(400);
@@ -108,7 +108,7 @@
         await sleep(400);
       }
     }
-    if (reduceMotion) showResult();
+    if (reduceMotion) showPaidChat();
     else play();
   }
 
@@ -209,6 +209,8 @@
     const text = `Hi ${inv.client}, here's my invoice for ${inv.description}: ${usd}.\n` +
       `You can pay in seconds with dollars (ParyonUSD) or Bitcoin Cash here: ${inv.payUrl}`;
     $('result-wa').href = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    $('result-email').href = `/email/${inv.id}`;
+    $('result-pdf').href = `/i/${inv.id}.pdf`;
     $('result-copy').onclick = (e) => copyText(inv.payUrl, e.currentTarget);
     $('p-empty').classList.add('hidden');
     $('p-result').classList.remove('hidden');

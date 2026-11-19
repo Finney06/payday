@@ -7,10 +7,11 @@ import { normalizeAddress, scripthashOf } from './address.js';
 import { getRates, toUsdCents } from './rates.js';
 import { chain } from './chain.js';
 import { quoteBch, submitPayment } from './payments.js';
-import { renderInvoicePng } from './invoice-image.js';
+import { renderInvoicePng, renderInvoicePdf } from './invoice-image.js';
 import { readFileSync } from 'node:fs';
 
 const publicDir = join(dirname(fileURLToPath(import.meta.url)), '..', 'public');
+const metaEsc = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 
 // Only what the client's pay page needs. Never the freelancer's chat id.
 function publicInvoice(inv) {
@@ -142,9 +143,28 @@ export function createWeb({ getBotUsername, onPaid }) {
     res.set('Cache-Control', 'public, max-age=300').type('png').send(hit.png);
   });
 
+  app.get('/i/:id.pdf', async (req, res) => {
+    const inv = await invoices.get(req.params.id);
+    if (!inv) return res.status(404).end();
+    try {
+      const pdf = await renderInvoicePdf(inv);
+      res.set('Content-Disposition', `attachment; filename="Payday-invoice-${inv.id}.pdf"`).type('pdf').send(pdf);
+    } catch (e) { console.error('pdf', e.message); res.status(500).end(); }
+  });
+
+  // Opens the sender's own email app with the invoice message ready. Payday does not send email.
+  app.get('/email/:id', async (req, res) => {
+    const inv = await invoices.get(req.params.id);
+    if (!inv) return res.status(404).type('text').send('Invoice not found');
+    const amount = `$${(inv.amount_cents / 100).toFixed(2)}`, payUrl = `${config.baseUrl}/pay/${inv.id}`, pdfUrl = `${config.baseUrl}/i/${inv.id}.pdf`;
+    const subject = `Invoice for ${inv.description}: ${amount}`;
+    const body = `Hi ${inv.client},\n\nHere is my invoice for ${inv.description}: ${amount}.\n\nPay here: ${payUrl}\nInvoice PDF: ${pdfUrl}\n\nThank you,\n${inv.payee_name}`;
+    const mailto = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    res.type('html').send(`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>Email invoice · Payday</title><link rel="icon" href="/icon.svg" type="image/svg+xml"><link rel="stylesheet" href="/styles.css"></head><body><header class="topbar"><a class="logo" href="/"><img src="/icon.svg" alt="" width="30" height="30">Payday</a></header><main class="wrap"><article class="ticket"><div class="ticket-body email-draft"><h1>Email this invoice</h1><p class="muted">Your email app will open with this message ready. Add ${metaEsc(inv.client)}'s email address, then send it.</p><pre id="email-text">${metaEsc(`Subject: ${subject}\n\n${body}`)}</pre><a class="btn block" href="${metaEsc(mailto)}">Open email app</a><button id="email-copy" class="btn block secondary" type="button">Copy message</button></div></article></main><script>document.getElementById('email-copy').onclick=async function(){try{await navigator.clipboard.writeText(document.getElementById('email-text').textContent);this.textContent='Copied ✓'}catch{this.textContent='Select the message to copy it'}}</script></body></html>`);
+  });
+
   // Pay page, with this invoice's own preview image and title for link previews.
   const payHtml = readFileSync(join(publicDir, 'pay.html'), 'utf8');
-  const metaEsc = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
   app.get('/pay/:id', async (req, res) => {
     const inv = /^[a-z0-9]{4,16}$/.test(req.params.id) ? await invoices.get(req.params.id) : null;
     if (!inv) return res.type('html').send(payHtml);

@@ -113,14 +113,15 @@
           <p class="muted" id="paid-line"></p>
           <a id="proof" class="btn block secondary" target="_blank" rel="noopener">See proof on the blockchain</a>
           <a class="btn block secondary no-print" href="https://t.me/PaydayInvoiceBot" target="_blank" rel="noopener">Make your own invoice in Telegram</a>
-          <button class="btn block quiet no-print" type="button" onclick="window.print()">Save or print receipt</button>
+          <a id="pdf-receipt" class="btn block quiet no-print" download>Download PDF receipt</a>
         </div>
       </article>
     </section>
 
     <footer class="pay-foot">
       <p>Payments go straight to the sender's wallet. Payday never holds your money.</p>
-      <p><a href="/#problems">What if something goes wrong?</a> · <a href="https://t.me/PaydayInvoiceBot" target="_blank" rel="noopener">Make your own invoice in Telegram</a></p>
+      <p><a id="pdf-invoice" download>Download invoice PDF</a> · <a href="/#problems">What if something goes wrong?</a></p>
+      <p><a href="https://t.me/PaydayInvoiceBot" target="_blank" rel="noopener">Make your own invoice in Telegram</a></p>
     </footer>
   </main>
   <script type="module" src="/pay.bundle.js"></script>
