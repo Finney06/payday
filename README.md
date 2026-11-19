@@ -2,25 +2,36 @@
 
 **Send an invoice from a chat. Get paid in dollars on Bitcoin Cash.**
 
+[![Payday](docs/payday.png)](https://youtu.be/atdXMCbQMbo)
+
+**[▶ Watch the 1-minute demo](https://youtu.be/atdXMCbQMbo)** · **[Try a 5¢ mainnet payment](https://payday-gumx.onrender.com/try)** · **[Open the Telegram bot](https://t.me/PaydayInvoiceBot)** · [Website](https://payday-gumx.onrender.com) · [Slides](https://payday-gumx.onrender.com/slides)
+
 Payday is a Telegram bot + web pay page for freelancers. You type
-`invoice Sarah $50 logo design` in Telegram, get a pay link, and forward it to your client on WhatsApp or anywhere.
+`invoice Sarah $50 logo design` in Telegram, get an invoice and a pay link, and send it to your client on WhatsApp, Telegram, email or anywhere.
 Your client opens the link, connects their wallet, and pays in **ParyonUSD** (a BCH dollar stablecoin) or **BCH**,
 straight into your own wallet. The bot tells you the moment you're paid.
 
 Built for [BCH BLAZE 2026](https://dorahacks.io/hackathon/bchblaze2026/detail).
 
 ## Why
-Freelancers in places like Nigeria lose money and time getting paid by overseas clients.
-Payday makes an invoice as easy as sending a chat message, and payment as easy as one tap.
+Freelancers who work with clients in other countries usually depend on a bank or payment company in the middle to get paid. That can bring fees, limits or delays.
+Payday makes an invoice as easy as sending a chat message, and the money goes straight from the client's wallet to the freelancer's.
 It's **non-custodial**: Payday never holds anyone's money.
 
 ## Features
 - Telegram bot: create invoices in one line or by answering 3 questions, priced in $, £ or ₦
-- Share buttons for WhatsApp and Telegram
+- One "Send to client" button: share by WhatsApp, Telegram or email
+- Invoice and receipt as a PDF
 - `/invoices`: see who has paid and what you're still owed, with one-tap polite reminders
 - Pay page: clean, mobile-first, pay in ParyonUSD or BCH via WizardConnect
 - Instant "✅ paid" notification in Telegram with blockchain proof
 - Web invoice creator for people without Telegram
+
+## Proof on mainnet
+Real payments through the live pay page:
+- ParyonUSD, scanned from a laptop: [249fc10e…](https://explorer.bch.ninja/tx/249fc10ef2da89f4ad294021476861d8c138bf4fd5776d00213d085ed009e8cd)
+- BCH, scanned from a laptop: [82c60f9f…](https://explorer.bch.ninja/tx/82c60f9f81059728cdc15146c01fab2be84a9f2462dc573861776ac928e6a056)
+- ParyonUSD, paid entirely on one phone: [9f0e9807…](https://explorer.selene.cash/tx/9f0e9807088394abbb05935fe154172e31d1c955a14391faacdc675fa2a3c544?network=mainnet)
 
 ## Built during BCH BLAZE
 Payday did not exist on 14 November 2026, so there is no earlier demo or code to compare with. The first commit is from 16 November: [`3842292`](https://github.com/Finney06/payday/tree/3842292e886f867331f94abb15a468409e2f5144). All the work in this repository was done during the hackathon.
@@ -59,7 +70,7 @@ npm start
 Requires Node.js 22+ (uses the built-in `node:sqlite`).
 
 ## Testing
-- `npm test`: unit tests for building payments (ParyonUSD and BCH), wallet-short errors, and the server refusing underpayments and payments for another invoice.
+- `npm test`: tests for reading invoice messages, the bot's buttons, building payments (ParyonUSD and BCH), wallet-short errors, and the server refusing underpayments and payments for another invoice.
 - `scripts/e2e-pay.mjs`: an **end-to-end payment** against a running server. It acts as the client's wallet through the same HTTP API as the pay page. It creates an invoice, reads the wallet's coins, gets the locked quote, builds the payment with `shared/tx.js`, signs it, and checks it with the Bitcoin Cash VM. Then it confirms that Payday refuses an underpayment, accepts and broadcasts the real payment, marks the invoice Paid, and refuses the same payment twice.
   ```bash
   # in one terminal: a separate chipnet server with the bot off
@@ -67,10 +78,10 @@ Requires Node.js 22+ (uses the built-in `node:sqlite`).
   # in another: fund the payer address it prints (chipnet.bch.ninja faucet), then
   node scripts/e2e-pay.mjs --base http://localhost:3200 --network chipnet --usd 0.01
   ```
-  Passed on chipnet on 17 Nov 2026: [58de43d3…7402b42](https://chipnet.chaingraph.cash/tx/58de43d320e881c1b43566bd26a22bb8c9e2e8a57f059356a9668798d7402b42).
+  Passed on chipnet on 17 Nov 2026: [58de43d3…7402b42](https://explorer.selene.cash/tx/58de43d320e881c1b43566bd26a22bb8c9e2e8a57f059356a9668798d7402b42?network=chipnet).
 
 ## Tech
-Node.js, [grammY](https://grammy.dev) (Telegram), Express, SQLite, [Libauth](https://libauth.org),
+Node.js, [grammY](https://grammy.dev) (Telegram), Express, PostgreSQL (SQLite locally), [Libauth](https://libauth.org),
 [WizardConnect](https://gitlab.com/riftenlabs/lib/wizardconnect) for wallet connection. The WizardConnect logo on the pay page comes from that project (LGPL-3.0-or-later).
 
 ## License
