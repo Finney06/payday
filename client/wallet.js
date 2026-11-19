@@ -4,10 +4,43 @@ import {
   initiateRelay, RelayStatus, RelayMsgAction, generateKeyExchangeCredentials, encodeKeyExchangeURI, DEFAULT_RELAY_URLS,
 } from '@wizardconnect/core';
 import { DappConnectionManager } from '@wizardconnect/dapp';
-import { hash160, encodeLockingBytecodeP2pkh, lockingBytecodeToCashAddress, stringify, binToHex, hexToBin } from '@bitauth/libauth';
+import {
+  hash160, encodeLockingBytecodeP2pkh, lockingBytecodeToCashAddress, stringify, binToHex, hexToBin,
+  decodeHdPublicKey, decodeHdKeyUnchecked, deriveHdPublicNodeChild,
+} from '@bitauth/libauth';
 import { buildPayment } from '../shared/tx.js';
 
-const PATHS = [{ name: 'receive', child: 0 }, { name: 'change', child: 1 }];
+// Wallets name and encode their address chains a little differently, so read each chain the wallet shares.
+// Returns [{ name, child, node }]: name is the wallet's own name (sent back when signing), child 0 = receive, 1 = change.
+export function readChains(paths = []) {
+  const chains = [];
+  const problems = [];
+  for (const p of paths) {
+    let decoded = decodeHdPublicKey(p.xpub);
+    if (typeof decoded === 'string') {
+      const loose = decodeHdKeyUnchecked(p.xpub);
+      if (typeof loose !== 'string' && loose.node.publicKey) decoded = loose;
+    }
+    if (typeof decoded === 'string') { problems.push(`${p.name}: ${decoded}`); continue; }
+    const n = String(p.name).toLowerCase();
+    if (/defi|cauldron|stealth|rpa/.test(n)) continue;
+    let child = /receiv|extern|main|deposit|^0$/.test(n) ? 0 : /change|intern|^1$/.test(n) ? 1 : undefined;
+    let node = decoded.node;
+    // An account-level key (m/44'/145'/0') still needs the receive or change step.
+    if (node.depth === 3) {
+      const step = deriveHdPublicNodeChild(node, child ?? chains.length);
+      if (typeof step === 'string') { problems.push(`${p.name}: ${step}`); continue; }
+      node = step;
+    }
+    chains.push({ name: p.name, child, node });
+  }
+  // Unnamed chains: the first is receive, the next is change.
+  for (const c of chains) {
+    if (c.child !== undefined) continue;
+    c.child = [0, 1].find((k) => !chains.some((o) => o.child === k)) ?? 0;
+  }
+  return { chains, problems };
+}
 const GAP = 20;
 const PAIRING_TTL = 20 * 60 * 1000;
 const CLOCK_MARGIN = 60; // seconds, in case the wallet's clock differs from this device's
@@ -40,7 +73,9 @@ export class WalletSession {
     this.mgr.on('messagereceived', (msg) => this.onMessage(msg));
     this.mgr.on('walletready', (msg) => this.rememberWallet(msg));
     const wallet = this.pairing.wallet;
-    if (wallet?.paths?.length) this.mgr.restoreSessionPaths(wallet.paths);
+    if (wallet?.paths?.length) {
+      try { this.mgr.restoreSessionPaths(wallet.paths); } catch { /* readChains reads the saved paths itself */ }
+    }
 
     const { publicKey, secret, privateKey } = this.pairing.credentials;
     const { uri, qrUri } = encodeKeyExchangeURI(publicKey, secret);
@@ -95,24 +130,50 @@ export class WalletSession {
     return new Promise((resolve) => this.mgr.once('walletready', (msg) => resolve(msg?.wallet_name || this.mgr.walletName || 'your wallet')));
   }
 
-  addressAt(child, index) {
-    const pk = this.mgr.getPubkey(child, BigInt(index));
-    if (!pk) return null;
-    const bytecode = encodeLockingBytecodeP2pkh(hash160(pk));
+  sharedPaths() {
+    const live = this.mgr.getSessionPaths();
+    return live.length ? live : (this.pairing.wallet?.paths || []);
+  }
+
+  chains() {
+    return readChains(this.sharedPaths()).chains;
+  }
+
+  addressAt(chain, index) {
+    const step = deriveHdPublicNodeChild(chain.node, index);
+    if (typeof step === 'string') return null;
+    const bytecode = encodeLockingBytecodeP2pkh(hash160(step.publicKey));
     const res = lockingBytecodeToCashAddress({ bytecode, prefix: this.prefix });
     return { address: typeof res === 'string' ? res : res.address, bytecode };
   }
 
-  // Finds the wallet's coins: first 20 receive + 20 change addresses.
+  // Some wallets send their keys a moment after saying they are ready: wait up to 8 seconds for them.
+  async waitForChains() {
+    for (let t = 0; t < 16 && !this.chains().length; t++) {
+      await new Promise((r) => setTimeout(r, 500));
+    }
+    return this.chains();
+  }
+
+  // Finds the wallet's coins: first 20 addresses on each chain the wallet shares.
   async scan() {
+    const chains = await this.waitForChains();
     const slots = [];
-    for (const p of PATHS) {
+    for (const c of chains) {
       for (let i = 0; i < GAP; i++) {
-        const a = this.addressAt(p.child, i);
-        if (a) slots.push({ ...a, path: p.name, index: i });
+        const a = this.addressAt(c, i);
+        if (a) slots.push({ ...a, path: c.name, index: i });
       }
     }
-    if (!slots.length) throw new Error('The wallet did not share its addresses. Please reconnect.');
+    if (!slots.length) {
+      const paths = this.sharedPaths();
+      const { problems } = readChains(paths);
+      const detail = paths.length
+        ? `shared: ${paths.map((p) => `${p.name} (${String(p.xpub).slice(0, 4)}…)`).join(', ')}${problems.length ? `; ${problems.join('; ')}` : ''}`
+        : 'no addresses shared';
+      console.warn('[payday] wallet paths', paths);
+      throw new Error(`The wallet did not share its addresses. Please reconnect. (${detail})`);
+    }
     const res = await fetch('/api/utxos', {
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ addresses: slots.map((s) => s.address) }),
@@ -133,7 +194,9 @@ export class WalletSession {
   }
 
   changeBytecode() {
-    return (this.addressAt(1, 0) || this.addressAt(0, 0)).bytecode;
+    const chains = this.chains();
+    const chain = chains.find((c) => c.child === 1) || chains[0];
+    return this.addressAt(chain, 0).bytecode;
   }
 
   // Waits for the wallet's answer to the saved request, including one sent while the page was reloading.
