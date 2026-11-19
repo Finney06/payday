@@ -26,6 +26,8 @@ export const config = {
   demoAddress: process.env.DEMO_ADDRESS || '',
   demoChatId: process.env.DEMO_CHAT_ID ? Number(process.env.DEMO_CHAT_ID) : null,
   demoCents: Number(process.env.DEMO_CENTS || 5),
+  // Telegram chat that gets an alert when a payer hits an error (defaults to the demo freelancer's chat)
+  alertChatId: process.env.ALERT_CHAT_ID ? Number(process.env.ALERT_CHAT_ID) : (process.env.DEMO_CHAT_ID ? Number(process.env.DEMO_CHAT_ID) : null),
   // ParyonUSD CashToken category on mainnet
   pusdCategory: '2469acc5afa4b10cb5b5c04afb89c3a3ffd61c5da9c01e26d00951cae2a02544',
 };

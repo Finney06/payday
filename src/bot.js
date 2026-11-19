@@ -136,6 +136,7 @@ export function createBot() {
       amountCents, inputAmount: draft.amount, inputCurrency: draft.currency,
     });
     state.delete(ctx.chat.id);
+    if (ctx.chat.id !== config.alertChatId) notifyDev(bot, `🧾 Someone made an invoice in the Telegram bot (${fmt.usd(amountCents)}).`, `inv:${inv.id}`, 'activity');
     await replyWithInvoice(ctx, inv, invoiceCard(inv), invoiceKeyboard(inv));
   }
 
@@ -181,6 +182,7 @@ export function createBot() {
     if (me) {
       return ctx.reply(`Welcome back, ${esc(me.name)} 👋\nPayments go to <code>${shortAddress(me.address)}</code>.\n\n${HELP}`, { ...HTML, reply_markup: menu });
     }
+    if (ctx.chat.id !== config.alertChatId) notifyDev(bot, '👋 A new person started the Telegram bot.', `start:${ctx.chat.id}`, 'activity');
     await ctx.reply(`👋 <b>Welcome to Payday</b>\n\nSend invoices from this chat. Your clients pay in dollars (ParyonUSD) or Bitcoin Cash, straight to your wallet, and I'll tell you the moment they pay.\n\nSetup takes 30 seconds.`, HTML);
     await askAddress(ctx);
   });
@@ -371,4 +373,21 @@ export async function notifyPaid(bot, inv) {
     console.error('receipt image failed, sending text:', err.message);
     await bot.api.sendMessage(inv.chat_id, text, HTML).catch((e) => console.error('notify failed', e.message));
   }
+}
+
+// Tells the developer what is happening: problems payers hit (kind 'error', at most 10 an hour) and anonymous
+// activity such as a new bot user or a payment (kind 'activity', at most 30 an hour). No names or addresses.
+const alertTimes = { error: [], activity: [] };
+const alertSeen = new Map(); // the same alert: once per 10 minutes
+export async function notifyDev(bot, text, key = text, kind = 'error') {
+  if (!bot || !config.alertChatId) return;
+  const now = Date.now();
+  const times = alertTimes[kind] || alertTimes.error;
+  while (times.length && now - times[0] > 3600_000) times.shift();
+  if (times.length >= (kind === 'activity' ? 30 : 10) || now - (alertSeen.get(key) || 0) < 600_000) return;
+  times.push(now);
+  alertSeen.set(key, now);
+  const title = kind === 'activity' ? '📈 Payday activity' : '⚠️ Payday alert';
+  await bot.api.sendMessage(config.alertChatId, `${title}\n\n${text}`.slice(0, 3500), { link_preview_options: { is_disabled: true } })
+    .catch((e) => console.error('alert failed', e.message));
 }

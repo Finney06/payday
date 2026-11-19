@@ -1,12 +1,18 @@
 import { config } from './config.js';
-import { createBot, setBotProfile, notifyPaid } from './bot.js';
+import { createBot, setBotProfile, notifyPaid, notifyDev } from './bot.js';
 import { createWeb } from './web.js';
 import { startKeepAwake } from './keep-awake.js';
 
 const bot = createBot();
 let botUsername = config.botUsername;
 
-const app = createWeb({ getBotUsername: () => botUsername, onPaid: (inv) => notifyPaid(bot, inv) });
+const app = createWeb({ getBotUsername: () => botUsername, onPaid, onAlert: (text, key) => notifyDev(bot, text, key), onActivity: (text, key) => notifyDev(bot, text, key, 'activity') });
+
+function onPaid(inv) {
+  notifyPaid(bot, inv);
+  const what = inv.chat_id === config.demoChatId && inv.client === 'You' ? 'the 5¢ demo' : 'an invoice';
+  notifyDev(bot, `💰 Someone paid ${what} in ${inv.paid_with === 'PUSD' ? 'ParyonUSD' : 'BCH'}.\nProof: https://explorer.bch.ninja/tx/${inv.txid}`, `paid:${inv.id}`, 'activity');
+}
 const server = app.listen(config.port, () => console.log(`Payday web running on ${config.baseUrl} (port ${config.port}, ${config.network})`));
 startKeepAwake(config.baseUrl);
 
@@ -41,5 +47,9 @@ async function shutdown(signal) {
   server.close(() => process.exit(0));
   setTimeout(() => process.exit(0), 5000).unref();
 }
+process.on('unhandledRejection', (err) => {
+  console.error('unhandled', err);
+  notifyDev(bot, `Server error: ${err?.message || err}`, 'server:' + (err?.message || err));
+});
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT', () => shutdown('SIGINT'));

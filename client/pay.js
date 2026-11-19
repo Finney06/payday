@@ -10,7 +10,7 @@ const money = (v, cur) => ({ USD: '$', GBP: '£', NGN: '₦' }[cur]) +
   v.toLocaleString('en-US', { minimumFractionDigits: cur === 'NGN' ? 0 : 2, maximumFractionDigits: cur === 'NGN' ? 0 : 2 });
 const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-let invoice, rates, cfg, method = 'PUSD', session = null, busy = false;
+let invoice, rates, cfg, method = 'PUSD', session = null, busy = false, lastStep = '';
 
 // ---------- rendering ----------
 function renderSendAmount() {
@@ -52,6 +52,7 @@ function render() {
 
 function setStep(step, message = '') {
   // step: idle | pairing | working | error
+  if (step !== 'error') lastStep = message || step;
   $('alt-btn').classList.add('hidden');
   $('pay-btn').classList.toggle('hidden', step !== 'idle' && step !== 'error');
   $('pay-btn').textContent = step === 'error' ? 'Try again' : 'Connect wallet & pay';
@@ -133,6 +134,7 @@ async function startPayment() {
     setStep('pairing', isMobile || session.resumed ? waiting : 'Scan with Paytaca (or any WizardConnect wallet).');
 
     const walletName = await session.waitForWallet();
+    connectedWallet = walletName;
     if (!busy) return;
     const approveMessage = isMobile ? `Open ${walletName} and approve the payment, then come back here.` : `Confirm the payment in ${walletName}…`;
     const signedHex = session.hasPendingSignature
@@ -176,10 +178,25 @@ $('alt-btn').addEventListener('click', () => {
   resolveSwitch?.(); resolveSwitch = null;
 });
 
+// Sends the error to Payday so the developer gets an alert. Never blocks or breaks the page.
+let connectedWallet = '';
+function report(e, cancelled) {
+  if (cancelled) return;
+  try {
+    const body = JSON.stringify({
+      invoiceId, method, wallet: connectedWallet, step: lastStep,
+      error: e?.message || String(e), device: `${isMobile ? 'phone' : 'computer'} · ${navigator.userAgent}`,
+    });
+    fetch('/api/report', { method: 'POST', headers: { 'content-type': 'application/json' }, body, keepalive: true }).catch(() => {});
+  } catch { /* reporting is best effort */ }
+}
+
 function fail(e) {
   console.error(e);
   busy = false;
-  const msg = /reject|cancel|denied|declin/i.test(e.message) ? 'Payment cancelled in the wallet. Nothing was sent.' : e.message;
+  const cancelled = /reject|cancel|denied|declin/i.test(e.message);
+  report(e, cancelled);
+  const msg = cancelled ? 'Payment cancelled in the wallet. Nothing was sent.' : e.message;
   setStep('error', msg);
   session?.close();
   session = null;
@@ -239,6 +256,7 @@ async function load() {
   $('loading').classList.add('hidden');
   if (!invRes.ok) { $('notfound').classList.remove('hidden'); return; }
   invoice = await invRes.json();
+  fetch('/api/seen', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ invoiceId, referrer: document.referrer }) }).catch(() => {});
   $('invoice').classList.remove('hidden');
   render();
   // A phone may have reloaded this page while the payer was in their wallet: carry on where they left off.

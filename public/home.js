@@ -1,6 +1,12 @@
 // Home page behaviour: hackathon banner, invoice form with live preview, rate check.
 (() => {
   const $ = (id) => document.getElementById(id);
+  // Anonymous visit count: only which site sent the visitor (e.g. DoraHacks), nothing about who they are.
+  try {
+    if (document.referrer && new URL(document.referrer).hostname !== location.hostname) {
+      fetch('/api/visit', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ referrer: document.referrer }) }).catch(() => {});
+    }
+  } catch { /* counting is best effort */ }
   const SYMBOL = { USD: '$', GBP: '£', NGN: '₦' };
   const money = (v, cur) => {
     const d = cur === 'NGN' ? 0 : 2;

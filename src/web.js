@@ -13,6 +13,17 @@ import { readFileSync } from 'node:fs';
 const publicDir = join(dirname(fileURLToPath(import.meta.url)), '..', 'public');
 const metaEsc = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 
+// Which site sent a visitor, from the browser's referrer: only the site's name, never the full link.
+const SOURCES = { 'dorahacks.io': 'DoraHacks', 'x.com': 'X', 't.co': 'X', 'twitter.com': 'X', 'youtube.com': 'YouTube', 'youtu.be': 'YouTube', 'telegram.org': 'Telegram', 't.me': 'Telegram', 'github.com': 'GitHub', 'linkedin.com': 'LinkedIn' };
+export function sourceOf(referrer, ownHost) {
+  let host;
+  try { host = new URL(String(referrer || '')).hostname.replace(/^www\./, ''); } catch { return ''; }
+  if (!host || host === ownHost) return '';
+  const known = Object.keys(SOURCES).find((h) => host === h || host.endsWith(`.${h}`));
+  return known ? SOURCES[known] : host;
+}
+const fromText = (src) => (src ? ` (from ${src})` : '');
+
 // Only what the client's pay page needs. Never the freelancer's chat id.
 function publicInvoice(inv) {
   return {
@@ -32,7 +43,7 @@ function publicInvoice(inv) {
   };
 }
 
-export function createWeb({ getBotUsername, onPaid }) {
+export function createWeb({ getBotUsername, onPaid, onAlert, onActivity }) {
   const app = express();
   app.disable('x-powered-by');
   app.use(express.json({ limit: '20kb' }));
@@ -54,6 +65,7 @@ export function createWeb({ getBotUsername, onPaid }) {
       client: 'You', description: 'Payday demo payment',
       amountCents: config.demoCents, inputAmount: config.demoCents / 100, inputCurrency: 'USD',
     });
+    onActivity?.(`👀 Someone opened the 5¢ demo${fromText(sourceOf(_req.get('referer'), _req.hostname))}.`, `try:${inv.id}`);
     res.redirect(302, `/pay/${inv.id}`);
   });
 
@@ -86,6 +98,7 @@ export function createWeb({ getBotUsername, onPaid }) {
       client: String(client).trim().slice(0, 60), description: String(description || 'Services').trim().slice(0, 120),
       amountCents, inputAmount: value, inputCurrency: currency,
     });
+    onActivity?.(`🧾 Someone made an invoice on the website ($${(amountCents / 100).toFixed(2)}).`, `inv:${inv.id}`);
     res.status(201).json({ ...publicInvoice(inv), payUrl: `${config.baseUrl}/pay/${inv.id}` });
   });
 
@@ -124,8 +137,42 @@ export function createWeb({ getBotUsername, onPaid }) {
       res.json(publicInvoice(paid));
     } catch (e) {
       console.error('submit failed', inv.id, e.message);
+      onAlert?.(`Payment refused by the server\nInvoice: ${inv.id} (${config.baseUrl}/pay/${inv.id})\nMethod: ${method}\nError: ${e.message}`, `submit:${inv.id}:${e.message}`);
       res.status(e.status || 500).json({ error: e.message });
     }
+  });
+
+  // Someone arrived on the home page from another site.
+  app.post('/api/visit', (req, res) => {
+    const src = sourceOf(req.body?.referrer, req.hostname);
+    if (src) onActivity?.(`🏠 Someone opened the Payday website${fromText(src)}.`);
+    res.status(204).end();
+  });
+
+  // A real browser opened a pay link (link-preview bots don't run the page, so they aren't counted).
+  app.post('/api/seen', async (req, res) => {
+    const id = String(req.body?.invoiceId || '').slice(0, 20);
+    const inv = id ? await invoices.get(id).catch(() => null) : null;
+    const demo = inv && inv.chat_id === config.demoChatId && inv.client === 'You';
+    if (inv && !demo) onActivity?.(`👀 Someone opened a pay link (${inv.status === 'paid' ? 'already paid' : 'not paid yet'})${fromText(sourceOf(req.body?.referrer, req.hostname))}.`, `seen:${inv.id}`);
+    res.status(204).end();
+  });
+
+  // The pay page reports errors a payer hits, so the developer hears about them right away.
+  app.post('/api/report', async (req, res) => {
+    const b = req.body || {};
+    const clip = (v, n = 300) => String(v ?? '').slice(0, n);
+    const inv = b.invoiceId ? await invoices.get(clip(b.invoiceId, 20)).catch(() => null) : null;
+    if (!inv) return res.status(204).end();
+    onAlert?.([
+      `A payer hit an error`,
+      `Invoice: ${inv.id} (${config.baseUrl}/pay/${inv.id})`,
+      `Wallet: ${clip(b.wallet, 60) || 'not connected yet'}`,
+      `Method: ${clip(b.method, 10)} · Step: ${clip(b.step, 40)}`,
+      `Device: ${clip(b.device, 160)}`,
+      `Error: ${clip(b.error, 600)}`,
+    ].join('\n'), `report:${inv.id}:${clip(b.error, 120)}`);
+    res.status(204).end();
   });
 
   // Invoice / receipt image (also used as the WhatsApp/Telegram link preview of a pay link).
