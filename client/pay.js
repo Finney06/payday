@@ -131,7 +131,7 @@ async function startPayment() {
     $('qr-wrap').classList.toggle('on-phone', isMobile);
     if (isMobile) $('qr-help').textContent = 'On this phone: copy the link, then in Paytaca open Apps → WizardConnect → Paste URL → Connect. Come back here after connecting.';
     const waiting = session.resumed ? 'Reconnecting to your wallet…' : 'Waiting for your wallet to connect…';
-    setStep('pairing', isMobile || session.resumed ? waiting : 'Scan with Paytaca (or any WizardConnect wallet).');
+    setStep('pairing', isMobile || session.resumed ? waiting : 'Scan with Paytaca, Selene or any WizardConnect wallet.');
 
     const walletName = await session.waitForWallet();
     connectedWallet = walletName;
@@ -208,7 +208,7 @@ function cancel() {
   $('alt-btn').classList.add('hidden');
   session?.close();
   session = null;
-  setStep('idle', 'Works with Paytaca and other WizardConnect wallets.');
+  setStep('idle', 'Works with Paytaca, Selene and other WizardConnect wallets.');
 }
 
 // ---------- events ----------
