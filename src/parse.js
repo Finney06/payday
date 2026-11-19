@@ -29,15 +29,28 @@ export function parseAmount(token, nextToken = '') {
   return { value, currency: currency ?? 'USD', usedNext, explicit: !!currency };
 }
 
+// "invoice", "/invoice", "make me an invoice", "please create a new invoice", "can you send a bill"
+const INVOICE_START = /^\/?(?:(?:please|pls|kindly)\s+)?(?:(?:can|could|would|will)\s+you\s+)?(?:(?:make|create|send|generate|prepare|draft|write)\s+(?:me\s+)?(?:(?:an?|the)\s+)?(?:new\s+)?)?(?:invoice|bill|new)\b:?\s*/i;
+
+export const startsInvoiceLine = (text) => INVOICE_START.test(text.trim());
+
 export function parseInvoiceLine(text) {
-  const words = text.trim().replace(/^\/?(invoice|bill|new)\b:?/i, '').trim().split(/\s+/).filter(Boolean);
+  const words = text.trim().replace(INVOICE_START, '').trim().split(/\s+/).filter(Boolean);
   const i = words.findIndex((w, idx) => parseAmount(w, words[idx + 1]));
-  if (i < 1) return null; // need a client name before the amount
+  if (i < 0) return null;
 
   const amount = parseAmount(words[i], words[i + 1]);
-  const client = words.slice(0, i).join(' ').replace(/^(to|for)\s+/i, '');
-  let description = words.slice(i + 1 + (amount.usedNext ? 1 : 0)).join(' ');
-  description = description.replace(/^for\s+/i, '').trim();
+  let client = words.slice(0, i).join(' ').replace(/^(?:to|for)(?:\s+|$)/i, '').replace(/\s+(?:for|of)$/i, '').trim();
+  let description = words.slice(i + 1 + (amount.usedNext ? 1 : 0)).join(' ').trim();
+  if (client) {
+    description = description.replace(/^for\s+/i, '').trim();
+  } else {
+    // "invoice $50 to Sarah for logo design"
+    const after = /^(?:to|for)\s+(.+?)(?:\s+for\s+(.+))?$/i.exec(description);
+    if (!after) return null; // need a client name
+    client = after[1].trim();
+    description = (after[2] || '').trim();
+  }
 
   return {
     client: client.slice(0, 60),

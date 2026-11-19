@@ -3,7 +3,7 @@ import { renderInvoicePng } from './invoice-image.js';
 import { config } from './config.js';
 import { freelancers, invoices } from './db.js';
 import { normalizeAddress, shortAddress } from './address.js';
-import { parseInvoiceLine, parseAmount } from './parse.js';
+import { parseInvoiceLine, parseAmount, startsInvoiceLine } from './parse.js';
 import { toUsdCents, fmt } from './rates.js';
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
