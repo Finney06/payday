@@ -263,6 +263,10 @@ button, input, select { font: inherit; color: inherit; }
 .tg-msg b { font-weight: 600; }
 .tg-msg.tg-media { width: 200px; max-width: none; padding: 0; overflow: hidden; }
 .tg-photo { display: block; width: 200px; height: 250px; }
+.tg-photo-wrap { position: relative; }
+.tg-stamp { position: absolute; left: 50%; top: 58%; white-space: nowrap; padding: 5px 15px 4px; border: 4px solid var(--paid); border-radius: 10px; background: rgba(255, 255, 255, .92); color: var(--paid); font-size: 31px; line-height: 1; font-weight: 800; letter-spacing: .06em; transform: translate(-50%, -50%) rotate(-8deg); animation: tg-stamp .32s cubic-bezier(.2, 1.4, .4, 1) .22s both; }
+.tg-paid-pill { position: absolute; right: 14px; top: 34px; padding: 3px 7px; border-radius: 999px; background: var(--green-soft); color: var(--green-text); font-size: 8px; line-height: 1; font-weight: 700; letter-spacing: .05em; }
+@keyframes tg-stamp { from { opacity: 0; transform: translate(-50%, -50%) rotate(-8deg) scale(1.5); } to { opacity: 1; transform: translate(-50%, -50%) rotate(-8deg) scale(1); } }
 .tg-cap { padding: 7px 10px 6px; font-size: 13px; line-height: 1.35; }
 .tg-cap .tg-link { white-space: nowrap; font-size: 12.5px; }
 .tg-link { color: #6ab3f3; text-decoration: underline; }
@@ -428,7 +432,7 @@ button, input, select { font: inherit; color: inherit; }
 /* ---------- 7. Motion and print ---------- */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .tg-msg, .tg-kb, .tg-dots i, .done-mark, .bubble::after, .bone, .wire::after { animation: none; }
+  .tg-msg, .tg-kb, .tg-stamp, .tg-dots i, .done-mark, .bubble::after, .bone, .wire::after { animation: none; }
   .spinner { animation-duration: 2.4s; }
   .btn, .input, .select, .seg button, .ticket-top { transition: none; }
 }

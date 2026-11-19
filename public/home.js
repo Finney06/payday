@@ -31,7 +31,8 @@
   document.querySelectorAll('.host').forEach((el) => { el.textContent = location.host; });
   // ---------- phone: the Telegram flow, played on a loop ----------
   const chat = $('tg-chat');
-  if (chat && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  if (chat) {
+    const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const field = $('tg-field');
     const sub = $('tg-sub');
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -44,7 +45,9 @@
       return el;
     };
     const LINE = 'invoice Sarah $50 logo design';
-    const INVOICE = '<img class="tg-photo" src="/demo-invoice.png" alt="" width="200" height="250">' +
+    const PHOTO = '<div class="tg-photo-wrap"><img class="tg-photo" src="/demo-invoice.png" alt="" width="200" height="250"></div>';
+    const STAMP = '<span class="tg-paid-pill">PAID</span><span class="tg-stamp">PAID</span>';
+    const INVOICE = PHOTO +
       '<div class="tg-cap"><b>Invoice k7m2xq9d</b><br>Send this to Sarah 👇<br>' +
       '<span class="tg-link"><span class="host"></span><br>/pay/k7m2xq9d</span><span class="tg-time">12:04</span></div>';
     const PAID = '🎉 <b>Sarah paid $50.00</b> in ParyonUSD.<br>The money is already in your wallet.<span class="tg-time">12:06</span>';
@@ -59,7 +62,22 @@
       sub.classList.remove('typing');
     }
 
+    const stampInvoice = () => chat.querySelector('.tg-photo-wrap')?.insertAdjacentHTML('beforeend', STAMP);
+
+    // The first thing a visitor sees: one message became a paid invoice.
+    function showResult() {
+      chat.replaceChildren();
+      add('tg-msg out', `${LINE}<span class="tg-time">12:04 ✓✓</span>`);
+      add('tg-msg in tg-media', PHOTO);
+      stampInvoice();
+      add('tg-msg in', PAID);
+    }
+
     async function play() {
+      showResult();
+      await sleep(4200);
+      chat.classList.add('fade');
+      await sleep(400);
       for (;;) {
         chat.replaceChildren();
         chat.classList.remove('fade');
@@ -84,12 +102,14 @@
         await sleep(1600);
         await botTyping(900);
         add('tg-msg in', PAID);
+        stampInvoice();
         await sleep(4200);
         chat.classList.add('fade');
         await sleep(400);
       }
     }
-    play();
+    if (reduceMotion) showResult();
+    else play();
   }
 
   // ---------- hackathon banner + demo amount (from /api/config) ----------
