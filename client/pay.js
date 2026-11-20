@@ -78,7 +78,7 @@ async function requestSignature(walletName, approveMessage) {
   if (typeof payee === 'string') throw new Error('This invoice has an invalid payment address.');
 
   const q = await (await fetch(`/api/invoice/${invoiceId}/quote`)).json();
-  if (!q.sats) throw new Error(q.error || 'Could not get the BCH price.');
+  if (!q.sats) throw new Error(q.error || "Could not get today's Bitcoin Cash price. Please try again in a minute.");
   const amountSats = BigInt(q.sats);
 
   // Does the wallet have enough of the chosen currency? If not, offer the other one.
@@ -119,7 +119,7 @@ async function startPayment() {
       prefix: cfg.network === 'mainnet' ? 'bitcoincash' : 'bchtest',
       invoiceId,
       method,
-      onDisconnect: () => { if (busy) fail(new Error('The wallet disconnected. Please try again.')); },
+      onDisconnect: () => { if (busy) fail(new Error('The wallet disconnected before the payment finished. Nothing was sent. Please try again.')); },
     });
     // Highest error correction, so the code still scans with the WizardConnect logo over its centre.
     const qrSvg = await QRCode.toString(session.qrUri, { type: 'svg', margin: 1, errorCorrectionLevel: 'H' });
@@ -147,7 +147,7 @@ async function startPayment() {
       body: JSON.stringify({ txHex: signedHex, method }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'The payment could not be sent.');
+    if (!res.ok) throw new Error(data.error || 'The payment could not be sent. Nothing left your wallet. Please try again.');
     invoice = data;
     busy = false;
     session.close();
@@ -196,7 +196,9 @@ function fail(e) {
   busy = false;
   const cancelled = /reject|cancel|denied|declin/i.test(e.message);
   report(e, cancelled);
-  const msg = cancelled ? 'Payment cancelled in the wallet. Nothing was sent.' : e.message;
+  const raw = String(e?.message || e);
+  const msg = cancelled ? 'Payment cancelled in the wallet. Nothing was sent.'
+    : /failed to fetch|networkerror|load failed|websocket|timed out|timeout/i.test(raw) ? 'Connection problem. Check your internet and try again.' : raw;
   setStep('error', msg);
   session?.close();
   session = null;

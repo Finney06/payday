@@ -30,7 +30,7 @@ export async function submitPayment(inv, txHex, method) {
   if (!/^[0-9a-f]+$/i.test(txHex) || txHex.length > 200_000) throw new SubmitError('Invalid transaction.');
 
   const tx = decodeTransaction(hexToBin(txHex));
-  if (typeof tx === 'string') throw new SubmitError('Could not read the transaction.');
+  if (typeof tx === 'string') throw new SubmitError('Payday could not read the payment your wallet signed, so nothing was sent. Please try again.');
   const payee = normalizeAddress(inv.payee_address);
   const payeeHex = payee.lockingBytecodeHex;
   const outputs = tx.outputs.map((o) => ({
@@ -43,27 +43,27 @@ export async function submitPayment(inv, txHex, method) {
   if (method === 'PUSD') {
     const paid = outputs.filter((o) => o.lockingHex === payeeHex && o.token?.category === config.pusdCategory)
       .reduce((s, o) => s + o.token.amount, 0n);
-    if (paid < BigInt(inv.amount_cents)) throw new SubmitError('This payment is less than the invoice amount.');
+    if (paid < BigInt(inv.amount_cents)) throw new SubmitError('This payment is less than the invoice amount, so Payday did not send it. Nothing left your wallet. Please try again.');
     paidWith = 'PUSD';
   } else {
     const q = quotes.get(inv.id) ?? await quoteBch(inv);
     const minSats = BigInt(Math.floor(q.sats * 0.99)); // 1% leeway for rounding
     const paid = outputs.filter((o) => o.lockingHex === payeeHex).reduce((s, o) => s + o.sats, 0n);
-    if (paid < minSats) throw new SubmitError('This payment is less than the invoice amount.');
+    if (paid < minSats) throw new SubmitError('This payment is less than the invoice amount, so Payday did not send it. Nothing left your wallet. Please try again.');
     paidWith = 'BCH';
   }
   const tag = binToHex(opReturnInvoice(inv.id));
-  if (!outputs.some((o) => o.lockingHex === tag)) throw new SubmitError('This payment is not linked to this invoice.');
+  if (!outputs.some((o) => o.lockingHex === tag)) throw new SubmitError('This payment is not linked to this invoice, so Payday did not send it. Nothing left your wallet. Please try again.');
 
   const txid = hashTransaction(hexToBin(txHex));
-  if (await invoices.txidUsed(txid)) throw new SubmitError('This payment was already used.', 409);
+  if (await invoices.txidUsed(txid)) throw new SubmitError('This payment was already used for another invoice. Nothing new was sent.', 409);
 
   try {
     await chain.broadcast(txHex);
   } catch (e) {
     // Already sent (e.g. the wallet broadcast it too) is fine.
     if (!/already|txn-already-known|in block chain/i.test(e.message)) {
-      throw new SubmitError(`The network rejected the payment: ${e.message}`, 502);
+      throw new SubmitError(`The Bitcoin Cash network rejected the payment, so nothing was sent. Please try again in a minute. (${e.message})`, 502);
     }
   }
   await invoices.markPaid(inv.id, txid, paidWith);

@@ -202,7 +202,7 @@ export class WalletSession {
         body: JSON.stringify({ addresses }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Could not check your wallet balance.');
+      if (!res.ok) throw new Error(data.error || 'Could not check your wallet balance. Please try again in a moment.');
       return data;
     };
     const found = await gapScan(chains, (c, i) => this.addressAt(c, i), fetchBatch);
@@ -227,7 +227,7 @@ export class WalletSession {
         if (msg.error) { reject(new Error(msg.error)); return; }
         const signed = typeof msg.signedTransaction === 'string' ? msg.signedTransaction : binToHex(msg.signedTransaction);
         if (signed) resolve(signed);
-        else reject(new Error('The wallet did not return a signed payment.'));
+        else reject(new Error('Your wallet did not send back a signed payment. Nothing was sent. Please try again.'));
       };
       if (this.signatureResponse) this.settleSignature(this.signatureResponse);
     });
