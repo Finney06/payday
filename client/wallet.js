@@ -42,6 +42,31 @@ export function readChains(paths = []) {
   return { chains, problems };
 }
 const GAP = 20;
+const MAX_PER_CHAIN = 200;
+
+// Finds a wallet's coins the way wallets do: check addresses in batches of 20 and keep going while the
+// batch has any address that was ever used (an emptied address still means the wallet moved on past it).
+// Stops at the first batch with no history at all, or after 200 addresses on a chain.
+// fetchBatch(addresses) -> { utxos: { [address]: [...] }, used: { [address]: true | false | null } }
+export async function gapScan(chains, addressAt, fetchBatch) {
+  const found = [];
+  await Promise.all(chains.map(async (c) => {
+    for (let start = 0; start < MAX_PER_CHAIN; start += GAP) {
+      const slots = [];
+      for (let i = start; i < start + GAP; i++) {
+        const a = addressAt(c, i);
+        if (a) slots.push({ ...a, path: c.name, index: i });
+      }
+      if (!slots.length) return;
+      const data = await fetchBatch(slots.map((s) => s.address));
+      for (const s of slots) for (const u of data.utxos[s.address] || []) found.push({ s, u });
+      // null means the server could not tell, so treat it as used and keep looking
+      const anyUsed = slots.some((s) => data.used[s.address] !== false);
+      if (!anyUsed) return;
+    }
+  }));
+  return found;
+}
 const PAIRING_TTL = 20 * 60 * 1000;
 const CLOCK_MARGIN = 60; // seconds, in case the wallet's clock differs from this device's
 const pairingKey = (invoiceId) => `payday-pairing:${invoiceId}`;
@@ -158,14 +183,8 @@ export class WalletSession {
   // Finds the wallet's coins: first 20 addresses on each chain the wallet shares.
   async scan() {
     const chains = await this.waitForChains();
-    const slots = [];
-    for (const c of chains) {
-      for (let i = 0; i < GAP; i++) {
-        const a = this.addressAt(c, i);
-        if (a) slots.push({ ...a, path: c.name, index: i });
-      }
-    }
-    if (!slots.length) {
+    const hasAddress = chains.some((c) => this.addressAt(c, 0));
+    if (!hasAddress) {
       const paths = this.sharedPaths();
       const { problems } = readChains(paths);
       const detail = paths.length
@@ -174,23 +193,21 @@ export class WalletSession {
       console.warn('[payday] wallet paths', paths);
       throw new Error(`The wallet did not share its addresses. Please reconnect. (${detail})`);
     }
-    const res = await fetch('/api/utxos', {
-      method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ addresses: slots.map((s) => s.address) }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Could not check your wallet balance.');
-    const utxos = [];
-    for (const s of slots) {
-      for (const u of data[s.address] || []) {
-        utxos.push({
-          txid: u.txid, vout: u.vout, value: BigInt(u.value),
-          token: u.token ? { category: u.token.category, amount: BigInt(u.token.amount), nft: u.token.nft } : null,
-          lockingBytecode: s.bytecode, path: s.path, index: s.index,
-        });
-      }
-    }
-    return utxos;
+    const fetchBatch = async (addresses) => {
+      const res = await fetch('/api/scan', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ addresses }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Could not check your wallet balance.');
+      return data;
+    };
+    const found = await gapScan(chains, (c, i) => this.addressAt(c, i), fetchBatch);
+    return found.map(({ s, u }) => ({
+      txid: u.txid, vout: u.vout, value: BigInt(u.value),
+      token: u.token ? { category: u.token.category, amount: BigInt(u.token.amount), nft: u.token.nft } : null,
+      lockingBytecode: s.bytecode, path: s.path, index: s.index,
+    }));
   }
 
   changeBytecode() {

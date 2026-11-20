@@ -119,6 +119,31 @@ export function createWeb({ getBotUsername, onPaid, onAlert, onActivity }) {
     }
   });
 
+  // Same as /api/utxos, plus whether each empty address was ever used, so the pay page can keep
+  // looking further into wallets that have moved past their first addresses.
+  app.post('/api/scan', async (req, res) => {
+    const addresses = Array.isArray(req.body?.addresses) ? req.body.addresses.slice(0, 40) : [];
+    if (!addresses.every((a) => normalizeAddress(a))) return res.status(400).json({ error: 'Invalid address list' });
+    try {
+      const shape = (u) => ({
+        txid: u.tx_hash, vout: u.tx_pos, value: String(u.value), height: u.height,
+        token: u.token_data ? { category: u.token_data.category, amount: String(u.token_data.amount ?? '0'), nft: u.token_data.nft ?? null } : null,
+      });
+      const rows = await Promise.all(addresses.map(async (a) => {
+        const sh = scripthashOf(a);
+        const list = await chain.listUnspent(sh);
+        const used = list.length > 0 ? true : await chain.everUsed(sh);
+        return [a, list.map(shape), used];
+      }));
+      res.json({
+        utxos: Object.fromEntries(rows.map(([a, u]) => [a, u])),
+        used: Object.fromEntries(rows.map(([a, , used]) => [a, used])),
+      });
+    } catch (e) {
+      res.status(502).json({ error: e.message });
+    }
+  });
+
   app.get('/api/invoice/:id/quote', async (req, res) => {
     const inv = await invoices.get(req.params.id);
     if (!inv) return res.status(404).json({ error: 'Invoice not found' });

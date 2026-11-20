@@ -4,7 +4,7 @@
   "description": "Send an invoice from a chat. Get paid in dollars on Bitcoin Cash.",
   "main": "index.js",
   "scripts": {
-    "test": "node --no-warnings --test test/payment.test.js test/parse.test.js test/bot-keyboard.test.js test/wallet-chains.test.js test/plain.test.js",
+    "test": "node --no-warnings --test test/payment.test.js test/parse.test.js test/bot-keyboard.test.js test/wallet-chains.test.js test/plain.test.js test/gap-scan.test.js",
     "start": "npm run build && node --no-warnings src/index.js",
     "dev": "node --no-warnings --watch src/index.js",
     "build": "esbuild client/pay.js --bundle --format=esm --platform=browser --target=es2022 --minify --sourcemap --outfile=public/pay.bundle.js"
