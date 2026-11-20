@@ -24,6 +24,8 @@ It's **non-custodial**: Payday never holds anyone's money.
 - Invoice and receipt as a PDF
 - `/invoices`: see who has paid and what you're still owed, with one-tap polite reminders
 - Pay page: clean, mobile-first, pay in ParyonUSD or BCH via WizardConnect (tested with Paytaca and Selene)
+- Any other Bitcoin Cash wallet can pay BCH with a plain QR code: each invoice gets its own exact amount, and Payday watches for it and marks the invoice paid (even if the client closes the page)
+- Paid page: share the receipt as an image or a PDF
 - Instant "✅ paid" notification in Telegram with blockchain proof
 - Web invoice creator for people without Telegram
 
@@ -33,6 +35,7 @@ Real payments through the live pay page:
 - BCH, scanned from a laptop: [82c60f9f…](https://explorer.bch.ninja/tx/82c60f9f81059728cdc15146c01fab2be84a9f2462dc573861776ac928e6a056)
 - ParyonUSD, paid entirely on one phone: [9f0e9807…](https://explorer.selene.cash/tx/9f0e9807088394abbb05935fe154172e31d1c955a14391faacdc675fa2a3c544?network=mainnet)
 - BCH, paid with Selene Wallet: [17025bd8…](https://explorer.bch.ninja/tx/17025bd81548818a789c87e33e6b593024168c5f01b5e7c70ad027d3b7d78abf)
+- BCH from a wallet's normal Scan (plain QR, no WizardConnect): [88cff117…](https://explorer.bch.ninja/tx/88cff117b3b0d344b87329ef9afae70699aac1d4241e8e563f84fa21ab941a63)
 
 ## Built during BCH BLAZE
 Payday did not exist on 14 November 2026, so there is no earlier demo or code to compare with. The first commit is from 16 November: [`3842292`](https://github.com/Finney06/payday/tree/3842292e886f867331f94abb15a468409e2f5144). All the work in this repository was done during the hackathon.
