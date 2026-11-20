@@ -101,14 +101,15 @@
 
           <div id="plain-panel" class="wallet hidden">
             <div id="plain-qr" class="qr plain-qr" role="img" aria-label="QR code with the address and exact amount"></div>
-            <p class="qr-help">Scan with <b>any</b> Bitcoin Cash wallet and send <b>exactly</b> this amount. It's set for this invoice, so Payday knows it's yours.</p>
+            <p class="qr-help">Wallet on another device? <b>Scan this code</b> with any Bitcoin Cash wallet. Wallet on this device? <b>Open it</b> below, or copy the amount and address.</p>
             <p class="send-line"><span>Exact amount</span><b id="plain-amount" class="mono"></b></p>
             <p class="plain-address mono" id="plain-address"></p>
             <div class="plain-copy">
               <button id="plain-copy-amount" class="btn secondary" type="button">Copy amount</button>
               <button id="plain-copy-address" class="btn secondary" type="button">Copy address</button>
             </div>
-            <a id="plain-open" class="btn block quiet hidden">Open in my wallet</a>
+            <a id="plain-open" class="btn block">Open in my wallet</a>
+            <p class="center small muted">Send exactly this amount. It's set for this invoice, so Payday knows it's yours.</p>
             <div class="spinner-row"><span class="spinner" aria-hidden="true"></span></div>
             <p class="center small muted" id="plain-msg" aria-live="polite">Waiting for your payment…</p>
             <button id="plain-back" class="btn block quiet" type="button">Back</button>

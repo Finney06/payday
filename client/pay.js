@@ -242,7 +242,6 @@ async function startPlain() {
     $('plain-amount').textContent = `${p.bch.replace(/0+$/, '').replace(/.$/, '')} BCH`;
     $('plain-address').textContent = p.address;
     $('plain-open').href = uri;
-    $('plain-open').classList.toggle('hidden', !isMobile);
     $('plain-msg').textContent = 'Waiting for your payment… This page updates by itself.';
     stopPlain();
     plainTimer = setInterval(checkPlainNow, 4000);
