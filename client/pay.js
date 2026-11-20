@@ -219,6 +219,7 @@ function showPlain(on) {
   $('plain-panel').classList.toggle('hidden', !on);
   for (const id of ['pay-btn', 'plain-btn', 'pay-msg']) $(id).classList.toggle('hidden', on);
   $('send-amount').parentElement.classList.toggle('hidden', on);
+  $('seg-hint').classList.toggle('hidden', on);
   $('seg').querySelectorAll('button').forEach((b) => { b.disabled = on; });
 }
 function stopPlain() {
