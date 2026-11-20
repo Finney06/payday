@@ -23,7 +23,7 @@ It's **non-custodial**: Payday never holds anyone's money.
 - One "Send to client" button: share by WhatsApp, Telegram or email
 - Invoice and receipt as a PDF
 - `/invoices`: see who has paid and what you're still owed, with one-tap polite reminders
-- Pay page: clean, mobile-first, pay in ParyonUSD or BCH via WizardConnect (tested with Paytaca and Selene)
+- Pay page: clean, mobile-first, pay in ParyonUSD or BCH via WizardConnect (tested with Paytaca, Selene and Cashonize)
 - Any other Bitcoin Cash wallet can pay BCH with a plain QR code: each invoice gets its own exact amount, and Payday watches for it and marks the invoice paid (even if the client closes the page)
 - Paid page: share the receipt as an image or a PDF
 - Instant "✅ paid" notification in Telegram with blockchain proof
@@ -35,6 +35,7 @@ Real payments through the live pay page:
 - BCH, scanned from a laptop: [82c60f9f…](https://explorer.bch.ninja/tx/82c60f9f81059728cdc15146c01fab2be84a9f2462dc573861776ac928e6a056)
 - ParyonUSD, paid entirely on one phone: [9f0e9807…](https://explorer.selene.cash/tx/9f0e9807088394abbb05935fe154172e31d1c955a14391faacdc675fa2a3c544?network=mainnet)
 - BCH, paid with Selene Wallet: [17025bd8…](https://explorer.bch.ninja/tx/17025bd81548818a789c87e33e6b593024168c5f01b5e7c70ad027d3b7d78abf)
+- BCH, paid with Cashonize (web wallet, WizardConnect on the same laptop): [6ecfa540…](https://explorer.bch.ninja/tx/6ecfa540a1375ebad2ea4f1ff1dfd9ffd333fc75d5de93fcf4377b3ff5062962)
 - BCH from a wallet's normal Scan (plain QR, no WizardConnect): [88cff117…](https://explorer.bch.ninja/tx/88cff117b3b0d344b87329ef9afae70699aac1d4241e8e563f84fa21ab941a63)
 
 ## Built during BCH BLAZE
@@ -61,7 +62,7 @@ Payday never holds the money, so most "what ifs" come down to that. Each answer 
 | **The work isn't delivered** | Payday doesn't hold money in the middle (no escrow), so it's the same trust as an ordinary invoice. Escrow with a fair way to settle disputes is on the roadmap, not in this version. |
 
 **Honest limits**
-- The client needs a WizardConnect wallet (Paytaca, Selene…) with BCH or ParyonUSD. Paying by card or bank isn't supported.
+- The client needs a WizardConnect wallet (Paytaca, Selene, Cashonize…), or any BCH wallet for a plain BCH payment by QR, with BCH or ParyonUSD. Paying by card or bank isn't supported.
 - If the server stops in the second between broadcasting a payment and saving it, the money still arrives, but the invoice can show Unpaid. The transaction (with its `PAYDAY` tag) on the explorer is the proof.
 - Paytaca shows a payment in its balance once it confirms, so the bot may say "paid" a few minutes before the wallet balance changes.
 

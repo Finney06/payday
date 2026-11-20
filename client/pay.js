@@ -131,7 +131,7 @@ async function startPayment() {
     $('qr-wrap').classList.toggle('on-phone', isMobile);
     if (isMobile) $('qr-help').textContent = 'On this phone: copy the link, then in Paytaca open Apps → WizardConnect → Paste URL → Connect. Come back here after connecting.';
     const waiting = session.resumed ? 'Reconnecting to your wallet…' : 'Waiting for your wallet to connect…';
-    setStep('pairing', isMobile || session.resumed ? waiting : 'Scan with Paytaca, Selene or any WizardConnect wallet.');
+    setStep('pairing', isMobile || session.resumed ? waiting : 'Scan with Paytaca, Selene, Cashonize or any WizardConnect wallet.');
 
     const walletName = await session.waitForWallet();
     connectedWallet = walletName;
@@ -208,7 +208,7 @@ function cancel() {
   $('alt-btn').classList.add('hidden');
   session?.close();
   session = null;
-  setStep('idle', 'Works with Paytaca, Selene and other WizardConnect wallets.');
+  setStep('idle', 'Works with Paytaca, Selene, Cashonize and other WizardConnect wallets.');
 }
 
 // ---------- pay with any wallet (plain BCH QR) ----------
@@ -292,7 +292,7 @@ async function shareReceipt(kind, btn) {
 }
 $('share-png').addEventListener('click', (e) => shareReceipt('png', e.currentTarget));
 $('share-pdf').addEventListener('click', (e) => shareReceipt('pdf', e.currentTarget));
-$('plain-back').addEventListener('click', () => { stopPlain(); showPlain(false); setStep('idle', 'Works with Paytaca, Selene and other WizardConnect wallets.'); });
+$('plain-back').addEventListener('click', () => { stopPlain(); showPlain(false); setStep('idle', 'Works with Paytaca, Selene, Cashonize and other WizardConnect wallets.'); });
 $('plain-copy-amount').addEventListener('click', (e) => plainInfo && copyText(plainInfo.bch.replace(/0+$/, '').replace(/.$/, ''), e.currentTarget, 'Copy amount'));
 $('plain-copy-address').addEventListener('click', (e) => plainInfo && copyText(plainInfo.address, e.currentTarget, 'Copy address'));
 
