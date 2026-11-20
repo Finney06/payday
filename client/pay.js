@@ -213,6 +213,8 @@ function cancel() {
 
 // ---------- pay with any wallet (plain BCH QR) ----------
 let plainTimer = null, plainInfo = null;
+// "0.00024860" -> "0.0002486" (drop trailing zeros only, and a bare trailing dot)
+const trimBch = (s) => String(s).replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '');
 function showPlain(on) {
   $('plain-panel').classList.toggle('hidden', !on);
   for (const id of ['pay-btn', 'plain-btn', 'pay-msg']) $(id).classList.toggle('hidden', on);
@@ -239,9 +241,11 @@ async function startPlain() {
     plainInfo = p;
     const uri = p.uri.startsWith('bitcoincash:') || p.uri.startsWith('bchtest:') ? p.uri : `bitcoincash:${p.uri}`;
     $('plain-qr').innerHTML = await QRCode.toString(uri, { type: 'svg', margin: 1, errorCorrectionLevel: 'M' });
-    $('plain-amount').textContent = `${p.bch.replace(/0+$/, '').replace(/.$/, '')} BCH`;
+    $('plain-amount').textContent = `${trimBch(p.bch)} BCH`;
     $('plain-address').textContent = p.address;
     $('plain-open').href = uri;
+    $('plain-open').textContent = isMobile ? 'Open in my wallet' : 'Open my wallet app';
+    $('plain-web').classList.toggle('hidden', isMobile);
     $('plain-msg').textContent = 'Waiting for your payment… This page updates by itself.';
     stopPlain();
     plainTimer = setInterval(checkPlainNow, 4000);
@@ -293,7 +297,7 @@ async function shareReceipt(kind, btn) {
 $('share-png').addEventListener('click', (e) => shareReceipt('png', e.currentTarget));
 $('share-pdf').addEventListener('click', (e) => shareReceipt('pdf', e.currentTarget));
 $('plain-back').addEventListener('click', () => { stopPlain(); showPlain(false); setStep('idle', 'Works with Paytaca, Selene, Cashonize and other WizardConnect wallets.'); });
-$('plain-copy-amount').addEventListener('click', (e) => plainInfo && copyText(plainInfo.bch.replace(/0+$/, '').replace(/.$/, ''), e.currentTarget, 'Copy amount'));
+$('plain-copy-amount').addEventListener('click', (e) => plainInfo && copyText(trimBch(plainInfo.bch), e.currentTarget, 'Copy amount'));
 $('plain-copy-address').addEventListener('click', (e) => plainInfo && copyText(plainInfo.address, e.currentTarget, 'Copy address'));
 
 // ---------- events ----------
