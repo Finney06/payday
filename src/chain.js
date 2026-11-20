@@ -80,4 +80,10 @@ export const chain = {
   },
   broadcast: (txHex) => rpc('blockchain.transaction.broadcast', txHex),
   getTx: (txid) => rpc('blockchain.transaction.get', txid, false),
+  // Current block height, or null if the server can't say.
+  async tipHeight() {
+    try { return (await rpc('blockchain.headers.get_tip'))?.height ?? null; } catch {
+      try { return (await rpc('blockchain.headers.subscribe'))?.height ?? null; } catch { return null; }
+    }
+  },
 };

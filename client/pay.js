@@ -56,6 +56,7 @@ function setStep(step, message = '') {
   $('alt-btn').classList.add('hidden');
   $('pay-btn').classList.toggle('hidden', step !== 'idle' && step !== 'error');
   $('pay-btn').textContent = step === 'error' ? 'Try again' : 'Connect wallet & pay';
+  $('plain-btn').classList.toggle('hidden', step !== 'idle' && step !== 'error');
   $('wallet-panel').classList.toggle('hidden', step !== 'pairing' && step !== 'working');
   $('qr-wrap').classList.toggle('hidden', step !== 'pairing');
   $('cancel-btn').classList.toggle('hidden', step !== 'pairing' && step !== 'working');
@@ -210,6 +211,59 @@ function cancel() {
   session = null;
   setStep('idle', 'Works with Paytaca, Selene and other WizardConnect wallets.');
 }
+
+// ---------- pay with any wallet (plain BCH QR) ----------
+let plainTimer = null, plainInfo = null;
+function showPlain(on) {
+  $('plain-panel').classList.toggle('hidden', !on);
+  for (const id of ['pay-btn', 'plain-btn', 'pay-msg']) $(id).classList.toggle('hidden', on);
+  $('send-amount').parentElement.classList.toggle('hidden', on);
+  $('seg').querySelectorAll('button').forEach((b) => { b.disabled = on; });
+}
+function stopPlain() {
+  clearInterval(plainTimer);
+  plainTimer = null;
+}
+async function copyText(text, btn, label) {
+  try { await navigator.clipboard.writeText(text); btn.textContent = 'Copied ✓'; } catch { btn.textContent = 'Copy failed'; }
+  setTimeout(() => { btn.textContent = label; }, 1800);
+}
+async function startPlain() {
+  if (busy) return;
+  selectMethod('BCH');
+  showPlain(true);
+  $('plain-msg').textContent = 'Getting the exact amount…';
+  try {
+    const r = await fetch(`/api/invoice/${invoiceId}/plain`);
+    const p = await r.json();
+    if (!r.ok) throw new Error(p.error || 'Could not get the BCH amount. Please try again.');
+    plainInfo = p;
+    const uri = p.uri.startsWith('bitcoincash:') || p.uri.startsWith('bchtest:') ? p.uri : `bitcoincash:${p.uri}`;
+    $('plain-qr').innerHTML = await QRCode.toString(uri, { type: 'svg', margin: 1, errorCorrectionLevel: 'M' });
+    $('plain-amount').textContent = `${p.bch.replace(/0+$/, '').replace(/.$/, '')} BCH`;
+    $('plain-address').textContent = p.address;
+    $('plain-open').href = uri;
+    $('plain-open').classList.toggle('hidden', !isMobile);
+    $('plain-msg').textContent = 'Waiting for your payment… This page updates by itself.';
+    stopPlain();
+    plainTimer = setInterval(checkPlainNow, 4000);
+  } catch (e) {
+    report(e, false);
+    $('plain-msg').textContent = e.message;
+  }
+}
+async function checkPlainNow() {
+  try {
+    const r = await fetch(`/api/invoice/${invoiceId}/check`, { method: 'POST' });
+    if (!r.ok) return;
+    const fresh = await r.json();
+    if (fresh.status === 'paid') { stopPlain(); showPlain(false); invoice = fresh; render(); }
+  } catch { /* offline for a moment: keep waiting */ }
+}
+$('plain-btn').addEventListener('click', startPlain);
+$('plain-back').addEventListener('click', () => { stopPlain(); showPlain(false); setStep('idle', 'Works with Paytaca, Selene and other WizardConnect wallets.'); });
+$('plain-copy-amount').addEventListener('click', (e) => plainInfo && copyText(plainInfo.bch.replace(/0+$/, '').replace(/.$/, ''), e.currentTarget, 'Copy amount'));
+$('plain-copy-address').addEventListener('click', (e) => plainInfo && copyText(plainInfo.address, e.currentTarget, 'Copy address'));
 
 // ---------- events ----------
 document.querySelectorAll('#seg button').forEach((b) => b.addEventListener('click', () => {

@@ -7,6 +7,7 @@ import { normalizeAddress, scripthashOf } from './address.js';
 import { getRates, toUsdCents } from './rates.js';
 import { chain } from './chain.js';
 import { quoteBch, submitPayment } from './payments.js';
+import { plainQuote, bip21, checkPlain, startPlainWatcher } from './plain.js';
 import { renderInvoicePng, renderInvoicePdf } from './invoice-image.js';
 import { readFileSync } from 'node:fs';
 
@@ -46,6 +47,7 @@ function publicInvoice(inv) {
 export function createWeb({ getBotUsername, onPaid, onAlert, onActivity }) {
   const app = express();
   app.disable('x-powered-by');
+  if (process.env.NODE_ENV !== 'test') startPlainWatcher((inv) => onPaid?.(inv));
   app.use(express.json({ limit: '20kb' }));
 
   app.get('/health', (_req, res) => res.json({ ok: true }));
@@ -124,6 +126,27 @@ export function createWeb({ getBotUsername, onPaid, onAlert, onActivity }) {
       const q = await quoteBch(inv);
       res.json({ sats: q.sats, bchUsd: q.bchUsd, expiresAt: q.expiresAt, pusdUnits: inv.amount_cents });
     } catch (e) { res.status(503).json({ error: e.message }); }
+  });
+
+  // Pay with any wallet: a plain BCH QR code with this invoice's exact amount.
+  app.get('/api/invoice/:id/plain', async (req, res) => {
+    const inv = await invoices.get(req.params.id);
+    if (!inv) return res.status(404).json({ error: 'Invoice not found' });
+    if (inv.status === 'paid') return res.status(409).json({ error: 'This invoice is already paid.' });
+    try {
+      const q = await plainQuote(inv);
+      res.json({ address: q.address, sats: q.sats, bch: (q.sats / 1e8).toFixed(8), uri: bip21(q), until: q.until });
+    } catch (e) { res.status(503).json({ error: e.message }); }
+  });
+
+  app.post('/api/invoice/:id/check', async (req, res) => {
+    const inv = await invoices.get(req.params.id);
+    if (!inv) return res.status(404).json({ error: 'Invoice not found' });
+    try {
+      const paid = await checkPlain(inv);
+      if (paid) onPaid?.(paid);
+      res.json(publicInvoice(paid || await invoices.get(inv.id)));
+    } catch (e) { res.status(502).json({ error: e.message }); }
   });
 
   app.post('/api/invoice/:id/submit', async (req, res) => {

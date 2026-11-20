@@ -452,3 +452,12 @@ button, input, select { font: inherit; color: inherit; }
   #proof { border: 0; min-height: 0; padding: 0; color: #000; font-size: 12px; word-break: break-all; }
   #proof::after { content: ": " attr(href); font-weight: 400; }
 }
+
+/* Pay with any wallet: plain BCH QR with the invoice's exact amount */
+#plain-panel { justify-items: center; }
+#plain-panel > * { width: 100%; }
+#plain-panel .plain-qr { width: 232px; }
+#plain-panel .qr-help { width: auto; }
+.plain-qr { cursor: default; margin: 0 auto; }
+.plain-address { font-size: 13px; color: var(--muted); text-align: center; overflow-wrap: anywhere; margin: -6px 0 0; }
+.plain-copy { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
