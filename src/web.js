@@ -65,7 +65,6 @@ export function createWeb({ getBotUsername, onPaid, onAlert, onActivity }) {
       client: 'You', description: 'Payday demo payment',
       amountCents: config.demoCents, inputAmount: config.demoCents / 100, inputCurrency: 'USD',
     });
-    onActivity?.(`👀 Someone opened the 5¢ demo${fromText(sourceOf(_req.get('referer'), _req.hostname))}.`, `try:${inv.id}`);
     res.redirect(302, `/pay/${inv.id}`);
   });
 
@@ -149,12 +148,14 @@ export function createWeb({ getBotUsername, onPaid, onAlert, onActivity }) {
     res.status(204).end();
   });
 
-  // A real browser opened a pay link (link-preview bots don't run the page, so they aren't counted).
+  // A real browser opened a pay link or the demo. Sent by the page's script, so link-preview robots (X, WhatsApp, Telegram) aren't counted.
   app.post('/api/seen', async (req, res) => {
     const id = String(req.body?.invoiceId || '').slice(0, 20);
     const inv = id ? await invoices.get(id).catch(() => null) : null;
     const demo = inv && inv.chat_id === config.demoChatId && inv.client === 'You';
-    if (inv && !demo) onActivity?.(`👀 Someone opened a pay link (${inv.status === 'paid' ? 'already paid' : 'not paid yet'})${fromText(sourceOf(req.body?.referrer, req.hostname))}.`, `seen:${inv.id}`);
+    const from = fromText(sourceOf(req.body?.referrer, req.hostname));
+    if (inv && demo && inv.status !== 'paid') onActivity?.(`👀 Someone opened the 5¢ demo${from}.`, `seen:${inv.id}`);
+    else if (inv && !demo) onActivity?.(`👀 Someone opened a pay link (${inv.status === 'paid' ? 'already paid' : 'not paid yet'})${from}.`, `seen:${inv.id}`);
     res.status(204).end();
   });
 
