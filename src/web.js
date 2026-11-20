@@ -228,10 +228,54 @@ export function createWeb({ getBotUsername, onPaid, onAlert, onActivity }) {
     const inv = await invoices.get(req.params.id);
     if (!inv) return res.status(404).type('text').send('Invoice not found');
     const amount = `$${(inv.amount_cents / 100).toFixed(2)}`, payUrl = `${config.baseUrl}/pay/${inv.id}`, pdfUrl = `${config.baseUrl}/i/${inv.id}.pdf`;
-    const subject = `Invoice for ${inv.description}: ${amount}`;
-    const body = `Hi ${inv.client},\n\nHere is my invoice for ${inv.description}: ${amount}.\n\nPay here: ${payUrl}\nInvoice PDF: ${pdfUrl}\n\nThank you,\n${inv.payee_name}`;
-    const mailto = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    res.type('html').send(`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>Email invoice · Payday</title><link rel="icon" href="/icon.svg" type="image/svg+xml"><link rel="stylesheet" href="/styles.css"></head><body><header class="topbar"><a class="logo" href="/"><img src="/icon.svg" alt="" width="30" height="30">Payday</a></header><main class="wrap"><article class="ticket"><div class="ticket-body email-draft"><h1>Email this invoice</h1><p class="muted">Your email app will open with this message ready. Add ${metaEsc(inv.client)}'s email address, then send it.</p><pre id="email-text">${metaEsc(`Subject: ${subject}\n\n${body}`)}</pre><a class="btn block" href="${metaEsc(mailto)}">Open email app</a><button id="email-copy" class="btn block secondary" type="button">Copy message</button></div></article></main><script>document.getElementById('email-copy').onclick=async function(){try{await navigator.clipboard.writeText(document.getElementById('email-text').textContent);this.textContent='Copied ✓'}catch{this.textContent='Select the message to copy it'}}</script></body></html>`);
+    const subject = `Invoice: ${inv.description} (${amount})`;
+    const sign = `Thanks,
+${inv.payee_name}`;
+    // Phones can attach the PDF through the share sheet; a mailto link can only carry text, so it links the PDF instead.
+    const attached = `Hi ${inv.client},
+
+My invoice for ${inv.description} (${amount}) is attached.
+You can pay it here: ${payUrl}
+
+${sign}`;
+    const linked = `Hi ${inv.client},
+
+Here's my invoice for ${inv.description} (${amount}).
+Pay here: ${payUrl}
+Invoice PDF: ${pdfUrl}
+
+${sign}`;
+    const mailto = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(linked)}`;
+    const data = JSON.stringify({ id: inv.id, subject, attached }).replace(/</g, '\u003c');
+    res.type('html').send(`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>Email invoice · Payday</title><link rel="icon" href="/icon.svg" type="image/svg+xml"><link rel="stylesheet" href="/styles.css"></head><body><header class="topbar"><a class="logo" href="/"><img src="/icon.svg" alt="" width="30" height="30">Payday</a></header><main class="wrap"><article class="ticket"><div class="ticket-body email-draft"><h1>Email this invoice</h1>
+<div id="attach-box" class="hidden"><p class="muted">Pick your email app (Gmail, Outlook…). The PDF is attached and the message is written. Just add ${metaEsc(inv.client)}'s email address.</p><button id="email-attach" class="btn block" type="button">Email with PDF attached</button></div>
+<p id="link-note" class="muted">Your email app opens with this message ready. Add ${metaEsc(inv.client)}'s email address, then send. The PDF is linked in the message; to attach it as well, download it first.</p>
+<pre id="email-text">${metaEsc(`Subject: ${subject}
+
+${linked}`)}</pre>
+<a id="email-open" class="btn block" href="${metaEsc(mailto)}">Open email app</a>
+<a class="btn block secondary" href="/i/${inv.id}.pdf" download="invoice-${inv.id}.pdf">Download PDF</a>
+<button id="email-copy" class="btn block secondary" type="button">Copy message</button></div></article></main>
+<script>
+const D = ${data};
+let pdf = null;
+// Fetch the PDF ahead of the tap, so the share sheet opens straight away.
+fetch('/i/' + D.id + '.pdf').then((r) => r.blob()).then((b) => {
+  const file = new File([b], 'invoice-' + D.id + '.pdf', { type: 'application/pdf' });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    pdf = file;
+    document.getElementById('attach-box').classList.remove('hidden');
+    document.getElementById('link-note').textContent = 'No share option? Use the email app button: the PDF is linked in the message.';
+    document.getElementById('email-open').classList.add('secondary');
+  }
+}).catch(() => {});
+document.getElementById('email-attach').onclick = async function () {
+  try { await navigator.share({ files: [pdf], title: D.subject, text: D.attached }); } catch (e) { /* closed the share sheet */ }
+};
+document.getElementById('email-copy').onclick = async function () {
+  try { await navigator.clipboard.writeText(document.getElementById('email-text').textContent); this.textContent = 'Copied ✓'; } catch { this.textContent = 'Select the message to copy it'; }
+};
+</script></body></html>`);
   });
 
   // Pay page, with this invoice's own preview image and title for link previews.
