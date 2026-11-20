@@ -133,10 +133,13 @@ export class WalletSession {
   get hasPendingSignature() { return this.pairing.sequence !== undefined; }
 
   rememberWallet(msg) {
+    // A wallet that reconnects can send an empty "ready" message: keep the addresses it shared before.
+    const live = this.mgr.getSessionPaths();
+    this.lastReady = { keys: Object.keys(msg?.session || {}).join(',') || 'none', paths: live.length };
     this.pairing.wallet = {
       publicKey: msg?.public_key || this.walletPublicKey || this.pairing.wallet?.publicKey,
       name: msg?.wallet_name || this.mgr.walletName || 'your wallet',
-      paths: this.mgr.getSessionPaths(),
+      paths: live.length ? live : (this.pairing.wallet?.paths || []),
     };
     this.savePairing();
   }
@@ -189,7 +192,7 @@ export class WalletSession {
       const { problems } = readChains(paths);
       const detail = paths.length
         ? `shared: ${paths.map((p) => `${p.name} (${String(p.xpub).slice(0, 4)}…)`).join(', ')}${problems.length ? `; ${problems.join('; ')}` : ''}`
-        : 'no addresses shared';
+        : `no addresses shared${this.lastReady ? `; the wallet's last ready message had session [${this.lastReady.keys}] and ${this.lastReady.paths} paths` : '; no ready message was seen'}`;
       console.warn('[payday] wallet paths', paths);
       throw new Error(`The wallet did not share its addresses. Please reconnect. (${detail})`);
     }
