@@ -465,3 +465,4 @@ button, input, select { font: inherit; color: inherit; }
 .share-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .email-actions { display: grid; gap: 10px; }
 .seg-hint { margin: -4px 2px 0; font-size: 14.5px; line-height: 1.4; color: var(--muted); }
+.plain-qr:hover { border-color: var(--line); }
