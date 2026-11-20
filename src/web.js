@@ -246,37 +246,36 @@ Invoice PDF: ${pdfUrl}
 
 ${sign}`;
     const mailto = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(linked)}`;
-    const data = JSON.stringify({ id: inv.id, subject, attached }).replace(/</g, '\u003c');
+    const data = JSON.stringify({ id: inv.id, attached, linked }).replace(/</g, '\u003c');
     res.type('html').send(`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>Email invoice · Payday</title><link rel="icon" href="/icon.svg" type="image/svg+xml"><link rel="stylesheet" href="/styles.css"></head><body><header class="topbar"><a class="logo" href="/"><img src="/icon.svg" alt="" width="30" height="30">Payday</a></header><main class="wrap"><article class="ticket"><div class="ticket-body email-draft"><h1>Email this invoice</h1>
-<div id="attach-box" class="hidden"><p class="muted">Pick your email app (Gmail, Outlook…). The PDF is attached and the message is written. Add ${metaEsc(inv.client)}'s email address, and paste the subject.</p><button id="email-attach" class="btn block" type="button">Email with PDF attached</button><button id="subject-copy" class="btn block secondary" type="button">Copy subject: ${metaEsc(subject)}</button></div>
-<p id="link-note" class="muted">Your email app opens with this message ready. Add ${metaEsc(inv.client)}'s email address, then send. The PDF is linked in the message; to attach it as well, download it first.</p>
-<pre id="email-text">${metaEsc(`Subject: ${subject}
-
-${linked}`)}</pre>
+<p id="email-note" class="muted">Your email app opens with this message ready. Add ${metaEsc(inv.client)}'s email address, then send.</p>
+<pre id="email-text">${metaEsc(linked)}</pre>
+<div class="email-actions">
+<button id="email-attach" class="btn block hidden" type="button">Email with PDF attached</button>
 <a id="email-open" class="btn block" href="${metaEsc(mailto)}">Open email app</a>
-<a class="btn block secondary" href="/i/${inv.id}.pdf" download="invoice-${inv.id}.pdf">Download PDF</a>
-<button id="email-copy" class="btn block secondary" type="button">Copy message</button></div></article></main>
+<a id="email-pdf" class="btn block secondary" href="/i/${inv.id}.pdf" download="invoice-${inv.id}.pdf">Download PDF</a>
+<button id="email-copy" class="btn block secondary" type="button">Copy message</button>
+</div></div></article></main>
 <script>
 const D = ${data};
+const $ = (id) => document.getElementById(id);
 let pdf = null;
-// Fetch the PDF ahead of the tap, so the share sheet opens straight away.
+// Phones can attach the PDF through the share sheet. Fetch it ahead of the tap so the sheet opens straight away.
 fetch('/i/' + D.id + '.pdf').then((r) => r.blob()).then((b) => {
   const file = new File([b], 'invoice-' + D.id + '.pdf', { type: 'application/pdf' });
-  if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    pdf = file;
-    document.getElementById('attach-box').classList.remove('hidden');
-    document.getElementById('link-note').textContent = 'No share option? Use the email app button: the PDF is linked in the message.';
-    document.getElementById('email-open').classList.add('secondary');
-  }
+  if (!(navigator.canShare && navigator.canShare({ files: [file] }))) return;
+  pdf = file;
+  $('email-attach').classList.remove('hidden');
+  $('email-open').classList.add('hidden');
+  $('email-pdf').classList.add('hidden');
+  $('email-text').textContent = D.attached;
+  $('email-note').textContent = 'Pick your email app. The PDF is attached and the message is written. Add the email address and a subject, then send.';
 }).catch(() => {});
-document.getElementById('email-attach').onclick = async function () {
+$('email-attach').onclick = async () => {
   try { await navigator.share({ files: [pdf], text: D.attached }); } catch (e) { /* closed the share sheet */ }
 };
-document.getElementById('subject-copy').onclick = async function () {
-  try { await navigator.clipboard.writeText(D.subject); this.textContent = 'Subject copied ✓'; } catch { this.textContent = D.subject; }
-};
-document.getElementById('email-copy').onclick = async function () {
-  try { await navigator.clipboard.writeText(document.getElementById('email-text').textContent); this.textContent = 'Copied ✓'; } catch { this.textContent = 'Select the message to copy it'; }
+$('email-copy').onclick = async function () {
+  try { await navigator.clipboard.writeText($('email-text').textContent); this.textContent = 'Copied ✓'; } catch { this.textContent = 'Select the message to copy it'; }
 };
 </script></body></html>`);
   });

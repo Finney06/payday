@@ -463,3 +463,4 @@ button, input, select { font: inherit; color: inherit; }
 .plain-copy { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
 .share-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.email-actions { display: grid; gap: 10px; }
