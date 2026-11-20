@@ -235,6 +235,7 @@ ${inv.payee_name}`;
     const attached = `Hi ${inv.client},
 
 My invoice for ${inv.description} (${amount}) is attached.
+
 You can pay it here: ${payUrl}
 
 ${sign}`;
