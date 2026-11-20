@@ -194,7 +194,7 @@ export class WalletSession {
         ? `shared: ${paths.map((p) => `${p.name} (${String(p.xpub).slice(0, 4)}…)`).join(', ')}${problems.length ? `; ${problems.join('; ')}` : ''}`
         : `no addresses shared${this.lastReady ? `; the wallet's last ready message had session [${this.lastReady.keys}] and ${this.lastReady.paths} paths` : '; no ready message was seen'}`;
       console.warn('[payday] wallet paths', paths);
-      throw new Error(`The wallet did not share its addresses. Please reconnect. (${detail})`);
+      throw Object.assign(new Error('Your wallet connected but did not share its addresses. Tap "Try again", or pay Bitcoin Cash with the QR code below.'), { detail });
     }
     const fetchBatch = async (addresses) => {
       const res = await fetch('/api/scan', {

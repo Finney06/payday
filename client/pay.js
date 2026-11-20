@@ -185,7 +185,7 @@ function report(e, cancelled) {
   try {
     const body = JSON.stringify({
       invoiceId, method, wallet: connectedWallet, step: lastStep,
-      error: e?.message || String(e), device: `${isMobile ? 'phone' : 'computer'} · ${navigator.userAgent}`,
+      error: (e?.message || String(e)) + (e?.detail ? ` (${e.detail})` : ''), device: `${isMobile ? 'phone' : 'computer'} · ${navigator.userAgent}`,
     });
     fetch('/api/report', { method: 'POST', headers: { 'content-type': 'application/json' }, body, keepalive: true }).catch(() => {});
   } catch { /* reporting is best effort */ }
