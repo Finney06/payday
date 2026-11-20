@@ -461,3 +461,5 @@ button, input, select { font: inherit; color: inherit; }
 .plain-qr { cursor: default; margin: 0 auto; }
 .plain-address { font-size: 13px; color: var(--muted); text-align: center; overflow-wrap: anywhere; margin: -6px 0 0; }
 .plain-copy { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.share-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }

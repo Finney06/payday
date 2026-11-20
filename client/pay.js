@@ -24,7 +24,6 @@ function renderSendAmount() {
 
 function render() {
   $('pdf-invoice').href = `/i/${invoiceId}.pdf`;
-  $('pdf-receipt').href = `/i/${invoiceId}.pdf`;
   document.title = `Pay ${usd(invoice.amountCents)} to ${invoice.payeeName} · Payday`;
   $('payee').textContent = invoice.payeeName;
   $('amount').textContent = usd(invoice.amountCents);
@@ -261,6 +260,39 @@ async function checkPlainNow() {
   } catch { /* offline for a moment: keep waiting */ }
 }
 $('plain-btn').addEventListener('click', startPlain);
+
+// ---------- share the receipt (image or PDF) ----------
+$('share-receipt').addEventListener('click', () => {
+  const open = $('share-options').classList.toggle('hidden') === false;
+  $('share-receipt').setAttribute('aria-expanded', String(open));
+});
+// Phones open the share sheet (WhatsApp, email…); elsewhere the file downloads.
+async function shareReceipt(kind, btn) {
+  const url = kind === 'pdf' ? `/i/${invoiceId}.pdf` : `/i/${invoiceId}.png`;
+  const name = `payday-receipt-${invoiceId}.${kind}`;
+  const label = btn.textContent;
+  btn.textContent = 'Preparing…';
+  try {
+    const blob = await (await fetch(url)).blob();
+    const file = new File([blob], name, { type: kind === 'pdf' ? 'application/pdf' : 'image/png' });
+    if (navigator.canShare?.({ files: [file] })) {
+      await navigator.share({ files: [file], title: 'Payment receipt', text: `Receipt for ${invoice.description}, paid with Payday` });
+    } else {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = name;
+      document.body.append(a);
+      a.click();
+      setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    }
+  } catch (e) {
+    if (e?.name !== 'AbortError') { const a = document.createElement('a'); a.href = url; a.download = name; a.click(); }
+  } finally {
+    btn.textContent = label;
+  }
+}
+$('share-png').addEventListener('click', (e) => shareReceipt('png', e.currentTarget));
+$('share-pdf').addEventListener('click', (e) => shareReceipt('pdf', e.currentTarget));
 $('plain-back').addEventListener('click', () => { stopPlain(); showPlain(false); setStep('idle', 'Works with Paytaca, Selene and other WizardConnect wallets.'); });
 $('plain-copy-amount').addEventListener('click', (e) => plainInfo && copyText(plainInfo.bch.replace(/0+$/, '').replace(/.$/, ''), e.currentTarget, 'Copy amount'));
 $('plain-copy-address').addEventListener('click', (e) => plainInfo && copyText(plainInfo.address, e.currentTarget, 'Copy address'));

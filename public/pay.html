@@ -129,7 +129,11 @@
           <p class="muted" id="paid-line"></p>
           <a id="proof" class="btn block secondary" target="_blank" rel="noopener">See proof on the blockchain</a>
           <a class="btn block secondary no-print" href="https://t.me/PaydayInvoiceBot" target="_blank" rel="noopener">Make your own invoice in Telegram</a>
-          <a id="pdf-receipt" class="btn block quiet no-print" download>Download PDF receipt</a>
+          <button id="share-receipt" class="btn block quiet no-print" type="button" aria-expanded="false" aria-controls="share-options">Share receipt</button>
+          <div id="share-options" class="share-options no-print hidden">
+            <button id="share-png" class="btn secondary" type="button">As image</button>
+            <button id="share-pdf" class="btn secondary" type="button">As PDF</button>
+          </div>
         </div>
       </article>
     </section>
