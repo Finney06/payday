@@ -175,9 +175,13 @@ export class WalletSession {
     return { address: typeof res === 'string' ? res : res.address, bytecode };
   }
 
-  // Some wallets send their keys a moment after saying they are ready: wait up to 8 seconds for them.
+  // Some wallets send their keys a moment after saying they are ready (or after the browser tab
+  // returns to the foreground on a phone): wait up to 15 seconds and nudge the wallet with dapp_ready.
   async waitForChains() {
-    for (let t = 0; t < 16 && !this.chains().length; t++) {
+    for (let t = 0; t < 30 && !this.chains().length; t++) {
+      if (t > 0 && t % 4 === 0) {
+        try { await this.mgr.pushDappReady(); } catch { /* ignore */ }
+      }
       await new Promise((r) => setTimeout(r, 500));
     }
     return this.chains();
